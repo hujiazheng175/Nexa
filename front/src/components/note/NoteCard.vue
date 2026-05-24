@@ -1,22 +1,18 @@
 <template>
   <div
-    class="group flex w-full flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition-all duration-200 cursor-pointer"
-    :class="[
-      isSelected
-        ? 'border-primary/30 bg-primary/5 shadow-sm'
-        : 'border-transparent hover:border-border hover:bg-card hover:shadow-sm'
-    ]"
+    class="note-card"
+    :class="{ 'note-card--selected': isSelected }"
     @click="$emit('click')"
   >
     <!-- Title -->
-    <div class="flex w-full items-start gap-2">
-      <FileText class="mt-0.5 h-4 w-4 shrink-0 text-muted" />
-      <h3 class="flex-1 text-base font-medium leading-snug text-text-primary">
+    <div class="note-card-header">
+      <FileText class="note-card-icon" />
+      <h3 class="note-card-title">
         {{ note.title || '无标题' }}
       </h3>
       <!-- Delete Button (show on hover) -->
       <button
-        class="delete-btn"
+        class="note-card-delete"
         @click.stop="$emit('delete', note.id)"
         title="删除笔记"
       >
@@ -27,14 +23,14 @@
     <!-- Preview -->
     <p
       v-if="previewText"
-      class="line-clamp-2 pl-6 text-sm leading-relaxed text-text-secondary"
+      class="note-card-preview"
     >
       {{ previewText }}
       <span v-if="shouldTruncate">...</span>
     </p>
 
     <!-- Meta -->
-    <div class="flex items-center gap-1.5 pl-6 text-xs text-muted/70">
+    <div class="note-card-meta">
       <Clock class="h-3 w-3" />
       <span>{{ formatDate(note.updatedAt) }}</span>
     </div>
@@ -92,7 +88,56 @@ const formatDate = (dateString) => {
 </script>
 
 <style scoped>
-.delete-btn {
+.note-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background-color: var(--color-card);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.note-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-soft);
+}
+
+.note-card--selected {
+  border-color: rgba(79, 124, 255, 0.3);
+  background-color: rgba(79, 124, 255, 0.05);
+  box-shadow: var(--shadow-soft);
+}
+
+.note-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.note-card-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+}
+
+.note-card-title {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--color-text-primary);
+}
+
+.note-card-delete {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,12 +153,28 @@ const formatDate = (dateString) => {
   flex-shrink: 0;
 }
 
-.group:hover .delete-btn {
+.note-card:hover .note-card-delete {
   opacity: 1;
 }
 
-.delete-btn:hover {
+.note-card-delete:hover {
   background-color: rgba(239, 68, 68, 0.1);
   color: var(--color-error);
+}
+
+.note-card-preview {
+  padding-left: 24px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.note-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 24px;
+  font-size: 12px;
+  color: rgba(156, 163, 175, 0.7);
 }
 </style>

@@ -73,7 +73,7 @@
         </template>
         <template v-else-if="filteredNotes.length === 0 && searchQuery">
           <div class="no-results">
-            <p class="text-text-secondary">没有找到匹配的笔记</p>
+            <p class="text-secondary">没有找到匹配的笔记</p>
             <p class="text-muted mt-1 text-sm">尝试使用不同的关键词搜索</p>
           </div>
         </template>
@@ -174,7 +174,6 @@ const loadNotes = async () => {
       page: currentPage.value,
       size: pageSize
     })
-    console.log('[分页调试] 首页加载:', { records: data?.records?.length, total: data?.total, page: data?.page, size: data?.size })
     notes.value = data?.records || []
     total.value = data?.total || 0
   } catch (error) {
@@ -199,7 +198,6 @@ const loadMore = async () => {
       size: pageSize
     })
     const newRecords = data?.records || []
-    console.log('[分页调试] 加载更多:', { page: currentPage.value, newRecords: newRecords.length, total: data?.total, hasMore: notes.value.length + newRecords.length < (data?.total || 0) })
     notes.value = [...notes.value, ...newRecords]
     total.value = data?.total || 0
   } catch (error) {
@@ -221,7 +219,6 @@ watch([sortBy], () => {
 const handleCreateNote = async () => {
   try {
     const newNote = await noteApi.create({ title: '无标题笔记', content: '' })
-    // 重新加载列表
     await loadNotes()
     sidebarRef.value?.loadSidebarNotes()
     if (newNote?.id) {
@@ -337,7 +334,7 @@ const onConfirmDelete = async () => {
   display: flex;
   align-items: center;
   padding: 2px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background-color: rgba(15, 23, 42, 0.03);
 }
@@ -376,7 +373,7 @@ const onConfirmDelete = async () => {
   align-items: center;
   justify-content: center;
   padding: 80px 0;
-  gap: 16px;
+  gap: var(--space-16);
 }
 
 .loading-spinner {
@@ -404,40 +401,40 @@ const onConfirmDelete = async () => {
 .notes-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: var(--space-16);
 }
 
 .notes-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-12);
 }
 
 .pagination-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 32px;
-  padding-top: 24px;
+  margin-top: var(--space-32);
+  padding-top: var(--space-24);
   border-top: 1px solid var(--color-border);
 }
 
 .load-more-btn {
   height: 38px;
   padding: 0 24px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
-  background-color: #FFFFFF;
+  background-color: var(--color-card);
   color: var(--color-text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--duration-normal) var(--ease-smooth);
 }
 
 .load-more-btn:hover:not(:disabled) {
-  border-color: #4F7CFF;
-  color: #4F7CFF;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
   background-color: rgba(79, 124, 255, 0.04);
 }
 
@@ -455,7 +452,7 @@ const onConfirmDelete = async () => {
   width: 16px;
   height: 16px;
   border: 2px solid var(--color-border);
-  border-top-color: #4F7CFF;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

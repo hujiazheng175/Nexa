@@ -2,7 +2,10 @@
   <div class="app-layout">
     <header class="app-header">
       <div class="header-inner">
-        <router-link to="/" class="logo">LingNote</router-link>
+        <router-link to="/" class="logo">
+        <img src="@/utils/logo.png" alt="Nexa" class="logo-icon" />
+        <span>Nexa</span>
+      </router-link>
         <nav class="header-nav">
           <slot name="nav"></slot>
         </nav>
@@ -40,15 +43,25 @@
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 18px;
   font-weight: 700;
   color: var(--color-text-primary);
   letter-spacing: -0.01em;
+  text-decoration: none;
   transition: color var(--duration-fast) var(--ease-smooth);
 }
 
 .logo:hover {
   color: var(--color-primary);
+}
+
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .header-nav {

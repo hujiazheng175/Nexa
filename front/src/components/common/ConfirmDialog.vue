@@ -95,16 +95,16 @@ defineExpose({
   width: 100%;
   max-width: 420px;
   padding: 24px;
-  background-color: #FFFFFF;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-dialog);
 }
 
 .confirm-header {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--space-16);
+  margin-bottom: var(--space-16);
 }
 
 .confirm-icon {
@@ -116,7 +116,7 @@ defineExpose({
   height: 40px;
   border-radius: 12px;
   background-color: rgba(239, 68, 68, 0.08);
-  color: #EF4444;
+  color: var(--color-error);
 }
 
 .confirm-icon svg {
@@ -128,57 +128,27 @@ defineExpose({
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1F2937;
+  color: var(--color-text-primary);
   letter-spacing: -0.01em;
 }
 
 .confirm-message {
-  margin: 0 0 24px 56px;
+  margin: 0 0 var(--space-24) 56px;
   font-size: 14px;
   line-height: 1.6;
-  color: #6B7280;
+  color: var(--color-text-secondary);
 }
 
 .confirm-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-}
-
-.btn {
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
-}
-
-.btn-secondary {
-  background-color: rgba(15, 23, 42, 0.04);
-  color: #6B7280;
-}
-
-.btn-secondary:hover {
-  background-color: rgba(15, 23, 42, 0.08);
-  color: #1F2937;
-}
-
-.btn-danger {
-  background-color: #EF4444;
-  color: #FFFFFF;
-}
-
-.btn-danger:hover {
-  background-color: #DC2626;
+  gap: var(--space-12);
 }
 
 /* Animation */
 .dialog-fade-enter-active,
 .dialog-fade-leave-active {
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--duration-normal) var(--ease-smooth);
 }
 
 .dialog-fade-enter-from,

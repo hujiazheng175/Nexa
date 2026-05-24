@@ -62,14 +62,14 @@ defineEmits(['create'])
 }
 
 .empty-title {
-  margin-bottom: 8px;
+  margin-bottom: var(--space-8);
   font-size: 20px;
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .empty-desc {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-32);
   max-width: 320px;
   font-size: 14px;
   line-height: 1.7;

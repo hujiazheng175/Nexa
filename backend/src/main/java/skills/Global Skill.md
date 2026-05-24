@@ -1,8 +1,8 @@
-# LingNote - Global Skill
+# Neax - Global Skill
 
 # Project Identity
 
-LingNote 是一个 AI Native 的个人知识系统。
+Neax 是一个 AI Native 的个人知识系统。
 
 它不是传统的笔记软件，也不是企业后台系统。
 
@@ -10,7 +10,7 @@ LingNote 是一个 AI Native 的个人知识系统。
 
 帮助用户建立、组织、延续自己的长期思维与知识。
 
-LingNote 应当像一个安静、克制、长期陪伴用户的数字书房。
+Neax 应当像一个安静、克制、长期陪伴用户的数字书房。
 
 系统必须始终围绕：
 
@@ -33,7 +33,7 @@ LingNote 应当像一个安静、克制、长期陪伴用户的数字书房。
 
 # Product Philosophy
 
-LingNote 强调：
+Neax 强调：
 
 - 内容优先
 - AI 原生体验
@@ -52,7 +52,7 @@ LingNote 强调：
 
 当前阶段：
 
-LingNote 是一个：
+Neax 是一个：
 “小而完整”的 AI 产品。
 
 优先保证：
@@ -126,10 +126,10 @@ AI 修改代码时必须：
 
 # Architecture Direction
 
-LingNote 当前采用：
+Neax当前采用：
 
 Frontend:
-
+- vue
 - Next.js
 - TypeScript
 
@@ -179,7 +179,7 @@ AI:
 - 炫技动画
 - 花哨视觉设计
 
-LingNote 更接近：
+Neax 更接近：
 “个人知识空间”
 
 而不是：
@@ -226,7 +226,7 @@ LingNote 更接近：
 - 可维护
 - 职责明确
 - 命名清晰
-
+- 注释清晰
 禁止：
 
 - 巨型类
@@ -251,7 +251,7 @@ LingNote 更接近：
 
 # Long-term Vision
 
-LingNote 的长期目标是：
+Neax 的长期目标是：
 
 成为一个真正理解用户长期知识与思维上下文的 AI 系统。
 
@@ -276,7 +276,7 @@ LingNote 的长期目标是：
 
 始终记住：
 
-LingNote 的核心不是“功能”。
+Neax 的核心不是“功能”。
 
 而是：
 

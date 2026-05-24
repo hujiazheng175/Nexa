@@ -2,8 +2,8 @@
   <aside class="sidebar">
     <!-- Logo -->
     <div class="sidebar-logo">
-      <div class="logo-icon">L</div>
-      <span class="logo-text">LingNote</span>
+      <img src="@/utils/logo.png" alt="Nexa" class="logo-icon" />
+      <span class="logo-text">Nexa</span>
     </div>
 
     <!-- Search -->
@@ -174,16 +174,10 @@ defineExpose({
 }
 
 .logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
   border-radius: var(--radius-sm);
-  background-color: var(--color-primary);
-  font-size: 14px;
-  font-weight: 600;
-  color: #FFFFFF;
+  object-fit: contain;
 }
 
 .logo-text {

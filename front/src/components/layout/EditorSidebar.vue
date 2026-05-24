@@ -4,8 +4,8 @@
       <!-- Collapsed state -->
       <div class="collapsed-header">
         <button class="collapsed-logo" @click="backToHome" title="返回首页">
-          <span>L</span>
-        </button>
+        <img src="@/utils/logo.png" alt="Nexa" />
+      </button>
         <button class="collapse-toggle" @click="toggleCollapse" title="展开侧边栏">
           <ChevronLeft class="h-4 w-4" />
         </button>
@@ -182,11 +182,14 @@ defineExpose({
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background-color: var(--color-primary);
-  color: #FFFFFF;
-  font-size: 14px;
-  font-weight: 600;
+  background-color: transparent;
   transition: background-color var(--duration-normal) var(--ease-smooth);
+}
+
+.collapsed-logo img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .collapsed-logo:hover {
