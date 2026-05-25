@@ -132,12 +132,18 @@
 <script setup>
 import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
+<<<<<<< HEAD
 import { BubbleMenu } from '@tiptap/vue-3/menus'
+=======
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Typography from '@tiptap/extension-typography'
+<<<<<<< HEAD
 import { Bold, Italic, Strikethrough, Code, Quote, List, ListOrdered } from 'lucide-vue-next'
+=======
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
 
 const props = defineProps({
   modelValue: {
@@ -155,6 +161,7 @@ const emit = defineEmits(['update:modelValue'])
 const editor = ref(null)
 let lastEmittedValue = props.modelValue
 
+<<<<<<< HEAD
 // Heading operations
 function setHeading(level) {
   editor.value.chain().focus().toggleHeading({ level }).run()
@@ -177,6 +184,8 @@ function toggleOrderedList() {
   editor.value.chain().focus().toggleOrderedList().run()
 }
 
+=======
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
@@ -191,7 +200,11 @@ onMounted(() => {
         }
       }),
       Placeholder.configure({
+<<<<<<< HEAD
         placeholder: () => props.placeholder
+=======
+        placeholder: props.placeholder
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
       })
     ],
     content: props.modelValue,
@@ -241,12 +254,15 @@ defineExpose({
 </script>
 
 <style scoped>
+<<<<<<< HEAD
 /* stylelint-disable */
 .editor-wrapper {
   position: relative;
   width: 100%;
 }
 
+=======
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
 .editor-content {
   width: 100%;
   min-height: 50vh;
@@ -257,6 +273,7 @@ defineExpose({
   letter-spacing: 0.01em;
 }
 
+<<<<<<< HEAD
 /* Floating Toolbar (BubbleMenu) */
 .editor-bubble-menu {
   display: flex;
@@ -313,6 +330,8 @@ defineExpose({
   background-color: var(--color-border-light);
 }
 
+=======
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
 :deep(.tiptap) {
   outline: none;
 }
@@ -380,6 +399,7 @@ defineExpose({
   margin-bottom: 0.5em;
 }
 
+<<<<<<< HEAD
 :deep(.tiptap ul) {
   list-style-type: disc;
 }
@@ -388,6 +408,8 @@ defineExpose({
   list-style-type: decimal;
 }
 
+=======
+>>>>>>> 82a4e65236c8869ab125428672c31a6933d5342b
 :deep(.tiptap li) {
   margin-bottom: 0.25em;
   line-height: 1.7;
