@@ -1,14 +1,143 @@
 <template>
-  <editor-content class="editor-content" :editor="editor" />
+  <div class="editor-wrapper">
+    <!-- Floating Toolbar (BubbleMenu) -->
+    <BubbleMenu
+      v-if="editor"
+      :editor="editor"
+      :tippy-options="{ duration: 150, placement: 'top' }"
+      class="editor-bubble-menu"
+    >
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('bold') }"
+        :title="'加粗'"
+        @click="editor.chain().focus().toggleBold().run()"
+      >
+        <Bold class="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('italic') }"
+        :title="'斜体'"
+        @click="editor.chain().focus().toggleItalic().run()"
+      >
+        <Italic class="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('strike') }"
+        :title="'删除线'"
+        @click="editor.chain().focus().toggleStrike().run()"
+      >
+        <Strikethrough class="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('code') }"
+        :title="'行内代码'"
+        @click="editor.chain().focus().toggleCode().run()"
+      >
+        <Code class="h-4 w-4" />
+      </button>
+
+      <div class="toolbar-divider" />
+
+      <!-- Heading Levels -->
+      <button
+        type="button"
+        class="toolbar-btn toolbar-btn-text"
+        :class="{ active: editor.isActive('heading', { level: 1 }) }"
+        :title="'一级标题'"
+        @click="setHeading(1)"
+      >
+        H1
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn toolbar-btn-text"
+        :class="{ active: editor.isActive('heading', { level: 2 }) }"
+        :title="'二级标题'"
+        @click="setHeading(2)"
+      >
+        H2
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn toolbar-btn-text"
+        :class="{ active: editor.isActive('heading', { level: 3 }) }"
+        :title="'三级标题'"
+        @click="setHeading(3)"
+      >
+        H3
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn toolbar-btn-text"
+        :class="{ active: editor.isActive('paragraph') }"
+        :title="'段落'"
+        @click="setParagraph"
+      >
+        ¶
+      </button>
+
+      <div class="toolbar-divider" />
+
+      <!-- Block Operations -->
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('blockquote') }"
+        :title="'引用'"
+        @click="toggleBlockquote"
+      >
+        <Quote class="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('bulletList') }"
+        :title="'无序列表'"
+        @click="toggleBulletList"
+      >
+        <List class="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-btn"
+        :class="{ active: editor.isActive('orderedList') }"
+        :title="'有序列表'"
+        @click="toggleOrderedList"
+      >
+        <ListOrdered class="h-4 w-4" />
+      </button>
+    </BubbleMenu>
+
+    <!-- Editor Content -->
+    <editor-content class="editor-content" :editor="editor" />
+  </div>
 </template>
 
 <script setup>
 import { onMounted, onBeforeUnmount, watch, ref } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
+import { BubbleMenu } from '@tiptap/vue-3/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Typography from '@tiptap/extension-typography'
+import { Bold, Italic, Strikethrough, Code, Quote, List, ListOrdered } from 'lucide-vue-next'
 
 const props = defineProps({
   modelValue: {
@@ -26,6 +155,28 @@ const emit = defineEmits(['update:modelValue'])
 const editor = ref(null)
 let lastEmittedValue = props.modelValue
 
+// Heading operations
+function setHeading(level) {
+  editor.value.chain().focus().toggleHeading({ level }).run()
+}
+
+function setParagraph() {
+  editor.value.chain().focus().setParagraph().run()
+}
+
+// Block operations
+function toggleBlockquote() {
+  editor.value.chain().focus().toggleBlockquote().run()
+}
+
+function toggleBulletList() {
+  editor.value.chain().focus().toggleBulletList().run()
+}
+
+function toggleOrderedList() {
+  editor.value.chain().focus().toggleOrderedList().run()
+}
+
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
@@ -40,7 +191,7 @@ onMounted(() => {
         }
       }),
       Placeholder.configure({
-        placeholder: props.placeholder
+        placeholder: () => props.placeholder
       })
     ],
     content: props.modelValue,
@@ -90,6 +241,12 @@ defineExpose({
 </script>
 
 <style scoped>
+/* stylelint-disable */
+.editor-wrapper {
+  position: relative;
+  width: 100%;
+}
+
 .editor-content {
   width: 100%;
   min-height: 50vh;
@@ -98,6 +255,62 @@ defineExpose({
   color: rgba(31, 41, 55, 0.85);
   outline: none;
   letter-spacing: 0.01em;
+}
+
+/* Floating Toolbar (BubbleMenu) */
+.editor-bubble-menu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  background: #FFFFFF;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08),
+              0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--color-border-light);
+  max-width: 600px;
+  flex-wrap: wrap;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toolbar-btn:hover {
+  background-color: rgba(15, 23, 42, 0.04);
+  color: var(--color-text-primary);
+}
+
+.toolbar-btn.active {
+  background-color: rgba(79, 124, 255, 0.12);
+  color: var(--color-primary);
+}
+
+/* Text-based toolbar buttons (for headings) */
+.toolbar-btn-text {
+  width: auto;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background-color: var(--color-border-light);
 }
 
 :deep(.tiptap) {
@@ -165,6 +378,14 @@ defineExpose({
 :deep(.tiptap ol) {
   padding-left: 1.5em;
   margin-bottom: 0.5em;
+}
+
+:deep(.tiptap ul) {
+  list-style-type: disc;
+}
+
+:deep(.tiptap ol) {
+  list-style-type: decimal;
 }
 
 :deep(.tiptap li) {

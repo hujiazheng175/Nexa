@@ -1,21 +1,41 @@
 <template>
   <div class="editor-status">
-    <div class="editor-status-indicator">
-      <span
-        class="editor-status-dot"
-        :class="dotClass"
-      />
-      <span class="editor-status-text" :class="{ 'has-error': status === 'error' }">
-        <template v-if="statusLabel">{{ statusLabel }}</template>
-        <template v-else>&nbsp;</template>
-      </span>
-      <span v-if="hasChanges && status !== 'saving'" class="unsaved-dot" title="有未保存的更改" />
+    <!-- Left: Focus mode toggle -->
+    <div class="editor-status-left">
+      <button
+        class="focus-mode-btn"
+        :class="{ active: isFocusMode }"
+        :title="isFocusMode ? '退出专注模式 (Esc)' : '进入专注模式 (Cmd/Ctrl+Shift+F)'"
+        @click="$emit('toggleFocusMode')"
+      >
+        <Maximize v-if="!isFocusMode" class="h-4 w-4" />
+        <Minimize v-else class="h-4 w-4" />
+        <span class="focus-mode-text">
+          {{ isFocusMode ? '专注中' : '专注模式' }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Right: Save status -->
+    <div class="editor-status-right">
+      <div class="editor-status-indicator">
+        <span
+          class="editor-status-dot"
+          :class="dotClass"
+        />
+        <span class="editor-status-text" :class="{ 'has-error': status === 'error' }">
+          <template v-if="statusLabel">{{ statusLabel }}</template>
+          <template v-else>&nbsp;</template>
+        </span>
+        <span v-if="hasChanges && status !== 'saving'" class="unsaved-dot" title="有未保存的更改" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { Maximize, Minimize } from 'lucide-vue-next'
 
 const props = defineProps({
   status: {
@@ -33,8 +53,14 @@ const props = defineProps({
   hasChanges: {
     type: Boolean,
     default: false
+  },
+  isFocusMode: {
+    type: Boolean,
+    default: false
   }
 })
+
+defineEmits(['toggleFocusMode'])
 
 const dotClass = computed(() => {
   switch (props.status) {
@@ -52,10 +78,20 @@ const dotClass = computed(() => {
 .editor-status {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   min-height: 40px;
   padding: 0 var(--space-32);
   border-bottom: 1px solid var(--color-border-light);
+}
+
+.editor-status-left {
+  display: flex;
+  align-items: center;
+}
+
+.editor-status-right {
+  display: flex;
+  align-items: center;
 }
 
 .editor-status-indicator {
@@ -66,6 +102,37 @@ const dotClass = computed(() => {
   color: var(--color-text-muted);
 }
 
+/* Focus mode button */
+.focus-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.focus-mode-btn:hover {
+  background-color: rgba(15, 23, 42, 0.04);
+  color: var(--color-text-primary);
+}
+
+.focus-mode-btn.active {
+  background-color: rgba(79, 124, 255, 0.08);
+  color: var(--color-primary);
+}
+
+.focus-mode-text {
+  letter-spacing: 0.01em;
+}
+
+/* Save status dots */
 .editor-status-dot {
   width: 5px;
   height: 5px;

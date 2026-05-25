@@ -2,6 +2,7 @@
   <div class="editor-page">
     <!-- Sidebar -->
     <EditorSidebar
+      v-show="!isFocusMode"
       ref="sidebarRef"
       :notes="sidebarNotes"
       :selected-note-id="noteId"
@@ -24,6 +25,8 @@
           :status-label="autoSave.statusLabel"
           :last-saved-at="autoSave.lastSavedAt"
           :has-changes="autoSave.hasChanges"
+          :is-focus-mode="isFocusMode"
+          @toggle-focus-mode="toggleFocusMode"
         />
 
         <!-- Editor Shell -->
@@ -54,6 +57,7 @@
 
     <!-- Assistant Panel -->
     <AssistantPanel
+      v-show="!isFocusMode"
       :is-open="isAssistantOpen"
       @toggle="toggleAssistant"
       :word-count="wordCount"
@@ -72,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import EditorSidebar from '@/components/layout/EditorSidebar.vue'
 import EditorShell from '@/components/editor/EditorShell.vue'
@@ -82,7 +86,8 @@ import EditorStatus from '@/components/editor/EditorStatus.vue'
 import AssistantPanel from '@/components/common/AssistantPanel.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { noteApi } from '@/api/note'
-import { useAutoSave, SAVE_STATUS } from '@/composables/useAutoSave'
+import { useAutoSave } from '@/composables/useAutoSave'
+import { useFocusMode } from '@/composables/useFocusMode'
 
 const route = useRoute()
 const router = useRouter()
@@ -106,6 +111,14 @@ const autoSave = useAutoSave({
     await loadSidebarNotes()
   },
   debounceMs: 800
+})
+
+// Focus mode composable
+const { isFocusMode, toggleFocusMode } = useFocusMode({
+  onEnter: () => {
+    // Close assistant when entering focus mode
+    isAssistantOpen.value = false
+  }
 })
 
 const wordCount = computed(() => {
@@ -172,7 +185,6 @@ watch(() => route.params.id, (newId, oldId) => {
 
 // Watch for save error to show confirmation dialog
 const confirmDialogRef = ref(null)
-const pendingDeleteId = ref(null)
 const pendingNavTarget = ref(null)
 
 // Confirm dialog state (for both delete and unsaved-leave)
@@ -262,7 +274,6 @@ const backToHome = () => {
 }
 
 const handleDeleteNote = (id) => {
-  pendingDeleteId.value = id
   confirmTitle.value = '确认删除'
   confirmMessage.value = '此操作无法撤销，确定要删除这篇笔记吗？'
   confirmConfirmText.value = '确认删除'
