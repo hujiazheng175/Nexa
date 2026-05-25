@@ -26,7 +26,6 @@
       class="note-card-preview"
     >
       {{ previewText }}
-      <span v-if="shouldTruncate">...</span>
     </p>
 
     <!-- Meta -->
@@ -40,6 +39,7 @@
 <script setup>
 import { computed } from 'vue'
 import { FileText, Clock, Trash2 } from 'lucide-vue-next'
+import { extractPreview } from '@/utils/html'
 
 const props = defineProps({
   note: {
@@ -54,18 +54,8 @@ const props = defineProps({
 
 defineEmits(['click', 'delete'])
 
-const previewText = computed(() => {
-  const content = props.note.content || ''
-  return content
-    .replace(/[#*`>\-\[\]()]/g, '')
-    .replace(/\n+/g, ' ')
-    .trim()
-    .slice(0, 120)
-})
-
-const shouldTruncate = computed(() => {
-  return (props.note.content || '').length > 120
-})
+const PREVIEW_MAX_LENGTH = 120
+const previewText = computed(() => extractPreview(props.note.content, PREVIEW_MAX_LENGTH))
 
 const formatDate = (dateString) => {
   const date = new Date(dateString)
