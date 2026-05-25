@@ -1,0 +1,24 @@
+<template>
+  <div class="editor-shell">
+    <div class="editor-shell-inner">
+      <slot />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.editor-shell {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--color-background);
+}
+
+.editor-shell-inner {
+  width: 100%;
+  max-width: 720px;
+  padding: 24px 40px 160px;
+}
+</style>
