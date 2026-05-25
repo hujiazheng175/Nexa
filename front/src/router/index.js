@@ -12,6 +12,11 @@ const routes = [
     component: () => import('@/pages/NoteDetailPage.vue')
   },
   {
+    path: '/trash',
+    name: 'Trash',
+    component: () => import('@/pages/TrashPage.vue')
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/pages/NotFoundPage.vue')

@@ -113,8 +113,8 @@
     <!-- Confirm Dialog -->
     <ConfirmDialog
       ref="confirmDialogRef"
-      title="确认删除"
-      message="此操作无法撤销，确定要删除这篇笔记吗？"
+      title="移至回收站"
+      message="笔记将被移至回收站，15 天后自动清空。可随时从回收站恢复。"
       @confirm="onConfirmDelete"
     />
   </div>

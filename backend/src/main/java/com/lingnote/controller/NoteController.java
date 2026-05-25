@@ -50,6 +50,26 @@ public class NoteController {
         return Result.success();
     }
 
+    @GetMapping("/trash")
+    public Result<PageResult<NoteVO>> listTrashed(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return Result.success(noteService.listTrashedNotes(page, size));
+    }
+
+    @PostMapping("/{id}/restore")
+    public Result<NoteVO> restore(@PathVariable String id) {
+        validateId(id);
+        return Result.success(noteService.restore(id));
+    }
+
+    @DeleteMapping("/{id}/permanent")
+    public Result<Void> permanentDelete(@PathVariable String id) {
+        validateId(id);
+        noteService.permanentDelete(id);
+        return Result.success();
+    }
+
     private void validateId(String id) {
         if (!StringUtils.hasText(id)) {
             throw new BusinessException(400, "Invalid note id");

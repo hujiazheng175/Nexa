@@ -99,6 +99,10 @@
 
     <!-- Footer -->
     <div class="sidebar-footer">
+      <router-link to="/trash" class="footer-link">
+        <Trash2 class="h-3 w-3" />
+        回收站
+      </router-link>
       <p class="footer-text">{{ sidebarNotes.length }} 篇笔记</p>
     </div>
   </aside>
@@ -365,6 +369,22 @@ defineExpose({
 .sidebar-footer {
   border-top: 1px solid var(--color-border-light);
   padding: 12px 20px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.footer-link:hover {
+  color: var(--color-error);
 }
 
 .footer-text {

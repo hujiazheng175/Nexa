@@ -5,7 +5,8 @@ CREATE TABLE note (
     content     TEXT            NOT NULL DEFAULT '',
     created_at  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    deleted     SMALLINT        NOT NULL DEFAULT 0
+    deleted     SMALLINT        NOT NULL DEFAULT 0,
+    deleted_at  TIMESTAMP       NULL DEFAULT NULL
 );
 
 CREATE INDEX idx_note_created_at ON note (created_at DESC);

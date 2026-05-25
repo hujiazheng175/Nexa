@@ -18,5 +18,15 @@ export const noteApi = {
   },
   delete(id) {
     return request.delete(`/notes/${id}`)
+  },
+  // Trash operations
+  getTrash(params) {
+    return request.get('/notes/trash', { params })
+  },
+  restore(id) {
+    return request.post(`/notes/${id}/restore`)
+  },
+  permanentDelete(id) {
+    return request.delete(`/notes/${id}/permanent`)
   }
 }
