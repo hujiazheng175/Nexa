@@ -25,7 +25,7 @@ public interface NoteService {
     void delete(String id);
 
     /** List all trashed notes (deleted = 1), ordered by deletion time */
-    PageResult<NoteVO> listTrashedNotes(int page, int size);
+    PageResult<NoteVO> listTrashedNotes(int page, int size, String keyword);
 
     /** Restore a trashed note back to active */
     NoteVO restore(String id);

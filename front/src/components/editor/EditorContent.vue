@@ -1,4 +1,4 @@
-<template>
+    <template>
   <div class="editor-wrapper">
     <!-- Floating Toolbar (BubbleMenu) -->
     <BubbleMenu

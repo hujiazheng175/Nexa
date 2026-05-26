@@ -87,14 +87,25 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public PageResult<NoteVO> listTrashedNotes(int page, int size) {
+    public PageResult<NoteVO> listTrashedNotes(int page, int size, String keyword) {
         Page<NoteEntity> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<NoteEntity> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(NoteEntity::getDeleted, 1);
+        if (StringUtils.hasText(keyword)) {
+            wrapper.and(w -> w.like(NoteEntity::getTitle, keyword)
+                    .or()
+                    .like(NoteEntity::getContent, keyword));
+        }
         wrapper.orderByDesc(NoteEntity::getDeletedAt);
 
         Page<NoteEntity> resultPage = noteMapper.selectPage(pageParam, wrapper);
         List<NoteVO> voList = noteConverter.toVOList(resultPage.getRecords());
+        voList.forEach(vo -> {
+            if (vo.getDeletedAt() != null) {
+                long daysSinceDeleted = java.time.temporal.ChronoUnit.DAYS.between(vo.getDeletedAt(), java.time.LocalDateTime.now());
+                vo.setRemainingDays((int) Math.max(0, com.lingnote.task.TrashCleanupTask.TRASH_RETENTION_DAYS - daysSinceDeleted));
+            }
+        });
         return new PageResult<>(voList, resultPage.getTotal(), page, size);
     }
 

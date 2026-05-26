@@ -53,8 +53,9 @@ public class NoteController {
     @GetMapping("/trash")
     public Result<PageResult<NoteVO>> listTrashed(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return Result.success(noteService.listTrashedNotes(page, size));
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword) {
+        return Result.success(noteService.listTrashedNotes(page, size, keyword));
     }
 
     @PostMapping("/{id}/restore")

@@ -1,20 +1,19 @@
 <template>
   <aside class="sidebar">
     <!-- Logo -->
-    <div class="sidebar-logo">
+    <router-link to="/" class="sidebar-logo">
       <img src="@/utils/logo.png" alt="Nexa" class="logo-icon" />
       <span class="logo-text">Nexa</span>
-    </div>
+    </router-link>
 
     <!-- Search -->
     <div class="sidebar-search">
       <div class="search-wrapper">
         <Search class="search-icon" />
         <input
+          v-model="query"
           class="search-input"
           placeholder="搜索笔记..."
-          :value="searchQuery"
-          @input="$emit('update:searchQuery', $event.target.value)"
         />
       </div>
     </div>
@@ -110,30 +109,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { Search, Plus, FileText, Clock, ChevronDown, Trash2 } from 'lucide-vue-next'
 import { noteApi } from '@/api/note'
 
 const props = defineProps({
-  notes: {
-    type: Array,
-    required: true
-  },
   selectedNoteId: {
-    type: String,
-    default: ''
-  },
-  searchQuery: {
     type: String,
     default: ''
   }
 })
 
-defineEmits(['select', 'create', 'update:searchQuery', 'delete'])
+const emit = defineEmits(['select', 'create', 'update:searchQuery', 'delete'])
 
 const isRecentExpanded = ref(true)
 const sidebarNotes = ref([])
 const trashCount = ref(0)
+const query = ref('')
+let searchTimer = null
 
 const recentNotes = computed(() => {
   return sidebarNotes.value.slice(0, 5)
@@ -142,7 +135,7 @@ const recentNotes = computed(() => {
 const loadSidebarNotes = async () => {
   try {
     const data = await noteApi.getAll({
-      keyword: props.searchQuery || undefined,
+      keyword: query.value || undefined,
       sortBy: 'updatedAt',
       sortOrder: 'desc'
     })
@@ -151,6 +144,18 @@ const loadSidebarNotes = async () => {
     console.error('加载侧边栏笔记失败:', error)
   }
 }
+
+watch(query, () => {
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    loadSidebarNotes()
+    emit('update:searchQuery', query.value)
+  }, 300)
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(searchTimer)
+})
 
 const loadTrashCount = async () => {
   try {
@@ -188,6 +193,8 @@ defineExpose({
   align-items: center;
   gap: 10px;
   padding: 20px 20px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .logo-icon {

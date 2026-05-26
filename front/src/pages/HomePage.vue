@@ -3,9 +3,7 @@
     <!-- Sidebar -->
     <Sidebar
       ref="sidebarRef"
-      :notes="notes"
       :selected-note-id="selectedNoteId"
-      :search-query="searchQuery"
       @select="handleSelectNote"
       @create="handleCreateNote"
       @update:search-query="handleSearch"
@@ -240,7 +238,6 @@ const handleSelectNote = (id) => {
 const handleSearch = (query) => {
   searchQuery.value = query
   loadNotes()
-  sidebarRef.value?.loadSidebarNotes()
 }
 
 const toggleSort = () => {

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class TrashCleanupTask {
 
-    private static final int TRASH_RETENTION_DAYS = 15;
+    public static final int TRASH_RETENTION_DAYS = 15;
 
     private final NoteService noteService;
 

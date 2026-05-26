@@ -13,4 +13,5 @@ public class NoteVO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
+    private Integer remainingDays;
 }
