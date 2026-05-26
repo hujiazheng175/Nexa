@@ -1,38 +1,51 @@
 <template>
   <div
     class="note-card"
-    :class="{ 'note-card--selected': isSelected }"
-    @click="$emit('click')"
+    :class="{
+      'note-card--selected': isSelected,
+      'note-card--deleting': isDeleting
+    }"
+    @click="!isDeleting && $emit('click')"
   >
-    <!-- Title -->
-    <div class="note-card-header">
-      <FileText class="note-card-icon" />
-      <h3 class="note-card-title">
-        {{ note.title || '无标题' }}
-      </h3>
-      <!-- Delete Button (show on hover) -->
-      <button
-        class="note-card-delete"
-        @click.stop="$emit('delete', note.id)"
-        title="删除笔记"
+    <!-- Deleting State: Inline Undo -->
+    <template v-if="isDeleting">
+      <div class="note-card-undo">
+        <span class="note-card-undo-text">已移入回收站</span>
+        <span class="note-card-undo-sep">·</span>
+        <button class="note-card-undo-link" @click.stop="$emit('undo', note.id)">
+          撤销
+        </button>
+      </div>
+    </template>
+
+    <!-- Normal State -->
+    <template v-else>
+      <div class="note-card-header">
+        <FileText class="note-card-icon" />
+        <h3 class="note-card-title">
+          {{ note.title || '无标题' }}
+        </h3>
+        <button
+          class="note-card-delete"
+          @click.stop="$emit('delete', note.id)"
+          title="删除笔记"
+        >
+          <Trash2 class="h-4 w-4" />
+        </button>
+      </div>
+
+      <p
+        v-if="previewText"
+        class="note-card-preview"
       >
-        <Trash2 class="h-4 w-4" />
-      </button>
-    </div>
+        {{ previewText }}
+      </p>
 
-    <!-- Preview -->
-    <p
-      v-if="previewText"
-      class="note-card-preview"
-    >
-      {{ previewText }}
-    </p>
-
-    <!-- Meta -->
-    <div class="note-card-meta">
-      <Clock class="h-3 w-3" />
-      <span>{{ formatDate(note.updatedAt) }}</span>
-    </div>
+      <div class="note-card-meta">
+        <Clock class="h-3 w-3" />
+        <span>{{ formatDate(note.updatedAt) }}</span>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -49,10 +62,14 @@ const props = defineProps({
   isSelected: {
     type: Boolean,
     default: false
+  },
+  isDeleting: {
+    type: Boolean,
+    default: false
   }
 })
 
-defineEmits(['click', 'delete'])
+defineEmits(['click', 'delete', 'undo'])
 
 const PREVIEW_MAX_LENGTH = 120
 const previewText = computed(() => extractPreview(props.note.content, PREVIEW_MAX_LENGTH))
@@ -102,6 +119,53 @@ const formatDate = (dateString) => {
   border-color: rgba(79, 124, 255, 0.3);
   background-color: rgba(79, 124, 255, 0.05);
   box-shadow: var(--shadow-soft);
+}
+
+/* Deleting State */
+.note-card--deleting {
+  background-color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(15, 23, 42, 0.04);
+  cursor: default;
+  justify-content: center;
+}
+
+.note-card--deleting:hover {
+  border-color: rgba(15, 23, 42, 0.04);
+  box-shadow: none;
+}
+
+.note-card-undo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.note-card-undo-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.note-card-undo-sep {
+  margin: 0 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.note-card-undo-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+
+.note-card-undo-link:hover {
+  opacity: 0.75;
 }
 
 .note-card-header {

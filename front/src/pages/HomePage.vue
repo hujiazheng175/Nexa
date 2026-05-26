@@ -87,8 +87,10 @@
               :key="note.id"
               :note="note"
               :is-selected="selectedNoteId === note.id"
+              :is-deleting="deletingNoteIds.includes(note.id)"
               @click="handleSelectNote(note.id)"
               @delete="handleDeleteNote"
+              @undo="handleUndoDelete"
             />
           </div>
 
@@ -115,6 +117,7 @@
       ref="confirmDialogRef"
       title="移至回收站"
       message="笔记将被移至回收站，15 天后自动清空。可随时从回收站恢复。"
+      confirm-text="移至回收站"
       @confirm="onConfirmDelete"
     />
   </div>
@@ -246,6 +249,8 @@ const toggleSort = () => {
 
 const confirmDialogRef = ref(null)
 const pendingDeleteId = ref(null)
+const deletingNoteIds = ref([])
+const deletingTimers = {}
 
 const handleDeleteNote = (id) => {
   pendingDeleteId.value = id
@@ -257,11 +262,35 @@ const onConfirmDelete = async () => {
   if (!id) return
   try {
     await noteApi.delete(id)
-    // 删除成功后重新加载列表
-    await loadNotes()
     sidebarRef.value?.loadSidebarNotes()
+    sidebarRef.value?.loadTrashCount()
+
+    // Show inline undo on the card itself
+    deletingNoteIds.value.push(id)
+
+    // Auto-remove from list after 5s (if not undone)
+    deletingTimers[id] = setTimeout(() => {
+      deletingNoteIds.value = deletingNoteIds.value.filter(did => did !== id)
+      notes.value = notes.value.filter(n => n.id !== id)
+      total.value = Math.max(0, total.value - 1)
+      delete deletingTimers[id]
+    }, 5000)
   } catch (error) {
     console.error('删除笔记失败:', error)
+  }
+}
+
+const handleUndoDelete = async (id) => {
+  try {
+    await noteApi.restore(id)
+    // Cancel the pending auto-remove timer
+    clearTimeout(deletingTimers[id])
+    delete deletingTimers[id]
+    deletingNoteIds.value = deletingNoteIds.value.filter(did => did !== id)
+    sidebarRef.value?.loadSidebarNotes()
+    sidebarRef.value?.loadTrashCount()
+  } catch (e) {
+    console.error('恢复笔记失败:', e)
   }
 }
 </script>

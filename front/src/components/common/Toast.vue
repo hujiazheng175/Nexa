@@ -1,51 +1,41 @@
 <template>
   <Teleport to="body">
-    <div class="toast-container">
-      <TransitionGroup name="toast">
-        <div
-          v-for="toast in toasts"
-          :key="toast.id"
-          class="toast"
-          :class="`toast--${toast.type}`"
-        >
-          <CheckCircle2 v-if="toast.type === 'success'" class="h-4 w-4" />
-          <AlertCircle v-if="toast.type === 'error'" class="h-4 w-4" />
-          <X v-if="toast.type === 'info'" class="h-4 w-4" />
-          <span class="toast-message">{{ toast.message }}</span>
-        </div>
-      </TransitionGroup>
-    </div>
+    <TransitionGroup name="toast" tag="div" class="toast-container">
+      <div
+        v-for="toast in toasts"
+        :key="toast.id"
+        class="toast"
+      >
+        <span class="toast-message">{{ toast.message }}</span>
+      </div>
+    </TransitionGroup>
   </Teleport>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { CheckCircle2, AlertCircle, X } from 'lucide-vue-next'
 
 const toasts = ref([])
 let nextId = 0
 
-function add(message, type = 'success', duration = 2500) {
+function add(message, duration) {
   const id = nextId++
-  toasts.value.push({ id, message, type })
+  toasts.value.push({ id, message })
   setTimeout(() => {
-    remove(id)
+    toasts.value = toasts.value.filter((t) => t.id !== id)
   }, duration)
 }
 
-function remove(id) {
-  toasts.value = toasts.value.filter((t) => t.id !== id)
-}
-
-defineExpose({ success: (msg) => add(msg, 'success'), error: (msg) => add(msg, 'error') })
+defineExpose({
+  show: (msg) => add(msg, 2500)
+})
 </script>
 
 <style scoped>
 .toast-container {
   position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 24px;
+  left: 280px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -56,40 +46,16 @@ defineExpose({ success: (msg) => add(msg, 'success'), error: (msg) => add(msg, '
 .toast {
   display: flex;
   align-items: center;
-  gap: 8px;
   padding: 10px 16px;
   border-radius: var(--radius-sm);
-  background-color: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  background-color: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
   pointer-events: auto;
-}
-
-.toast--success {
-  border-color: rgba(34, 197, 94, 0.3);
-}
-
-.toast--success svg {
-  color: var(--color-success);
-}
-
-.toast--error {
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.toast--error svg {
-  color: var(--color-error);
-}
-
-.toast--info {
-  border-color: rgba(79, 124, 255, 0.3);
-}
-
-.toast--info svg {
-  color: var(--color-primary);
 }
 
 .toast-message {
@@ -97,16 +63,20 @@ defineExpose({ success: (msg) => add(msg, 'success'), error: (msg) => add(msg, '
 }
 
 .toast-enter-active {
-  transition: all var(--duration-normal) var(--ease-smooth);
+  transition: all 200ms var(--ease-smooth);
 }
 
 .toast-leave-active {
-  transition: all var(--duration-fast) var(--ease-smooth);
+  transition: all 150ms var(--ease-smooth);
 }
 
-.toast-enter-from,
+.toast-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-4px);
 }
 </style>

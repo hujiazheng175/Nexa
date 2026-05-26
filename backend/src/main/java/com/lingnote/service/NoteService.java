@@ -33,6 +33,12 @@ public interface NoteService {
     /** Permanently delete a trashed note */
     void permanentDelete(String id);
 
+    /** Permanently delete all notes in trash */
+    void emptyTrash();
+
+    /** Count all notes in trash */
+    long countTrashed();
+
     /** Clean up trashed notes older than specified days */
     void cleanupOldTrash(int days);
 }

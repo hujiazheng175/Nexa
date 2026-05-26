@@ -126,6 +126,20 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
+    public void emptyTrash() {
+        LambdaQueryWrapper<NoteEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(NoteEntity::getDeleted, 1);
+        noteMapper.delete(wrapper);
+    }
+
+    @Override
+    public long countTrashed() {
+        LambdaQueryWrapper<NoteEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(NoteEntity::getDeleted, 1);
+        return noteMapper.selectCount(wrapper);
+    }
+
+    @Override
     public void cleanupOldTrash(int days) {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
         LambdaQueryWrapper<NoteEntity> wrapper = new LambdaQueryWrapper<>();

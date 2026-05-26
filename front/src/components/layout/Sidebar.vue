@@ -102,6 +102,7 @@
       <router-link to="/trash" class="footer-link">
         <Trash2 class="h-3 w-3" />
         回收站
+        <span v-if="trashCount > 0" class="footer-badge">{{ trashCount }}</span>
       </router-link>
       <p class="footer-text">{{ sidebarNotes.length }} 篇笔记</p>
     </div>
@@ -132,6 +133,7 @@ defineEmits(['select', 'create', 'update:searchQuery', 'delete'])
 
 const isRecentExpanded = ref(true)
 const sidebarNotes = ref([])
+const trashCount = ref(0)
 
 const recentNotes = computed(() => {
   return sidebarNotes.value.slice(0, 5)
@@ -150,12 +152,23 @@ const loadSidebarNotes = async () => {
   }
 }
 
+const loadTrashCount = async () => {
+  try {
+    const count = await noteApi.getTrashCount()
+    trashCount.value = count || 0
+  } catch (error) {
+    console.error('加载回收站数量失败:', error)
+  }
+}
+
 onMounted(() => {
   loadSidebarNotes()
+  loadTrashCount()
 })
 
 defineExpose({
-  loadSidebarNotes
+  loadSidebarNotes,
+  loadTrashCount
 })
 </script>
 
@@ -385,6 +398,21 @@ defineExpose({
 
 .footer-link:hover {
   color: var(--color-error);
+}
+
+.footer-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background-color: rgba(15, 23, 42, 0.06);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .footer-text {

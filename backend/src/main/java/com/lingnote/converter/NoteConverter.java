@@ -32,6 +32,7 @@ public class NoteConverter {
         vo.setContent(entity.getContent());
         vo.setCreatedAt(entity.getCreatedAt());
         vo.setUpdatedAt(entity.getUpdatedAt());
+        vo.setDeletedAt(entity.getDeletedAt());
         return vo;
     }
 

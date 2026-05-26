@@ -164,7 +164,7 @@ class NoteServiceTest {
     }
 
     @Test
-    void delete_shouldCallMapperDeleteById() {
+    void delete_shouldSoftDelete() {
         NoteEntity entity = new NoteEntity();
         entity.setId("test-id");
 
@@ -172,7 +172,9 @@ class NoteServiceTest {
 
         noteService.delete("test-id");
 
-        verify(noteMapper).deleteById("test-id");
+        assertEquals(1, entity.getDeleted());
+        assertNotNull(entity.getDeletedAt());
+        verify(noteMapper).updateById(entity);
     }
 
     @Test

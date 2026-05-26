@@ -28,5 +28,11 @@ export const noteApi = {
   },
   permanentDelete(id) {
     return request.delete(`/notes/${id}/permanent`)
+  },
+  getTrashCount() {
+    return request.get('/notes/trash/count')
+  },
+  emptyTrash() {
+    return request.delete('/notes/trash')
   }
 }

@@ -12,7 +12,6 @@ import Toast from '@/components/common/Toast.vue'
 const toastRef = ref(null)
 
 window.$toast = {
-  success: (msg) => toastRef.value?.success(msg),
-  error: (msg) => toastRef.value?.error(msg)
+  show: (msg) => toastRef.value?.show(msg)
 }
 </script>

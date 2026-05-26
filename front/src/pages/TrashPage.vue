@@ -23,6 +23,13 @@
               {{ total }} 篇笔记 · 15 天后自动清空
             </p>
           </div>
+          <button
+            v-if="trashedNotes.length > 0"
+            class="empty-all-btn"
+            @click="handleEmptyTrash"
+          >
+            清空回收站
+          </button>
         </div>
 
         <!-- Loading State -->
@@ -97,6 +104,14 @@
       title="确认永久删除"
       message="此操作不可恢复，确定要永久删除这篇笔记吗？"
       @confirm="onConfirmPermanentDelete"
+    />
+
+    <!-- Confirm Dialog for Empty Trash -->
+    <ConfirmDialog
+      ref="emptyTrashDialogRef"
+      title="确认清空回收站"
+      message="此操作将永久删除回收站中的所有笔记，不可恢复。确定继续吗？"
+      @confirm="onConfirmEmptyTrash"
     />
   </div>
 </template>
@@ -173,10 +188,11 @@ const handleRestore = async (id) => {
     await noteApi.restore(id)
     await loadTrashedNotes()
     sidebarRef.value?.loadSidebarNotes()
-    window.$toast?.success('笔记已恢复')
+    sidebarRef.value?.loadTrashCount()
+    window.$toast?.show('笔记已恢复')
   } catch (error) {
     console.error('恢复笔记失败:', error)
-    window.$toast?.error('恢复失败')
+    window.$toast?.show('恢复失败')
   }
 }
 
@@ -194,10 +210,29 @@ const onConfirmPermanentDelete = async () => {
   try {
     await noteApi.permanentDelete(id)
     await loadTrashedNotes()
-    window.$toast?.success('笔记已永久删除')
+    sidebarRef.value?.loadTrashCount()
+    window.$toast?.show('笔记已永久删除')
   } catch (error) {
     console.error('永久删除失败:', error)
-    window.$toast?.error('删除失败')
+    window.$toast?.show('删除失败')
+  }
+}
+
+const emptyTrashDialogRef = ref(null)
+
+const handleEmptyTrash = () => {
+  emptyTrashDialogRef.value?.show()
+}
+
+const onConfirmEmptyTrash = async () => {
+  try {
+    await noteApi.emptyTrash()
+    await loadTrashedNotes()
+    sidebarRef.value?.loadTrashCount()
+    window.$toast?.show('回收站已清空')
+  } catch (error) {
+    console.error('清空回收站失败:', error)
+    window.$toast?.show('清空失败')
   }
 }
 
@@ -274,6 +309,25 @@ onMounted(() => {
   margin-top: 4px;
   font-size: 13px;
   color: var(--color-text-secondary);
+}
+
+.empty-all-btn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.empty-all-btn:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.04);
 }
 
 /* Empty State */

@@ -63,6 +63,17 @@ public class NoteController {
         return Result.success(noteService.restore(id));
     }
 
+    @GetMapping("/trash/count")
+    public Result<Long> countTrashed() {
+        return Result.success(noteService.countTrashed());
+    }
+
+    @DeleteMapping("/trash")
+    public Result<Void> emptyTrash() {
+        noteService.emptyTrash();
+        return Result.success();
+    }
+
     @DeleteMapping("/{id}/permanent")
     public Result<Void> permanentDelete(@PathVariable String id) {
         validateId(id);
