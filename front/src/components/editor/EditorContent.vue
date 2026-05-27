@@ -124,8 +124,14 @@
       </button>
     </BubbleMenu>
 
+    <!-- Block Insert Handle -->
+    <BlockInsertHandle v-if="editor" :editor="editor" />
+
     <!-- Editor Content -->
     <editor-content class="editor-content" :editor="editor" />
+
+    <!-- Image Lightbox -->
+    <ImageLightbox ref="lightboxRef" />
   </div>
 </template>
 
@@ -135,8 +141,10 @@ import { Editor, EditorContent } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3/menus'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
-import Link from '@tiptap/extension-link'
 import Typography from '@tiptap/extension-typography'
+import ImageExt from '@tiptap/extension-image'
+import BlockInsertHandle from './BlockInsertHandle.vue'
+import ImageLightbox from './ImageLightbox.vue'
 import { Bold, Italic, Strikethrough, Code, Quote, List, ListOrdered } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -153,7 +161,14 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const editor = ref(null)
+const lightboxRef = ref(null)
 let lastEmittedValue = props.modelValue
+
+function onEditorClick(e) {
+  const img = e.target.closest('img')
+  if (!img || !img.src) return
+  lightboxRef.value?.open(img.src, img.alt || '')
+}
 
 // Heading operations
 function setHeading(level) {
@@ -180,18 +195,22 @@ function toggleOrderedList() {
 onMounted(() => {
   editor.value = new Editor({
     extensions: [
-      StarterKit,
-      Typography,
-      Link.configure({
-        openOnClick: false,
-        defaultProtocol: 'https',
-        HTMLAttributes: {
-          target: '_blank',
-          rel: 'noopener noreferrer'
+      StarterKit.configure({
+        link: {
+          openOnClick: false,
+          defaultProtocol: 'https',
+          HTMLAttributes: {
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
         }
       }),
+      Typography,
       Placeholder.configure({
         placeholder: () => props.placeholder
+      }),
+      ImageExt.configure({
+        allowBase64: true
       })
     ],
     content: props.modelValue,
@@ -220,9 +239,14 @@ onMounted(() => {
       emit('update:modelValue', html)
     }
   })
+
+  editor.value.view.dom.addEventListener('click', onEditorClick)
 })
 
 onBeforeUnmount(() => {
+  if (editor.value) {
+    editor.value.view.dom.removeEventListener('click', onEditorClick)
+  }
   editor.value?.destroy()
 })
 
@@ -354,14 +378,10 @@ defineExpose({
   font-size: 17px;
 }
 
-/* Bold & Italic */
+/* Bold */
 :deep(.tiptap strong) {
   font-weight: 600;
   color: var(--color-text-primary);
-}
-
-:deep(.tiptap em) {
-  font-style: italic;
 }
 
 /* Blockquote */
@@ -453,20 +473,20 @@ defineExpose({
   text-decoration: line-through;
 }
 
-/* Task List */
-:deep(.tiptap ul[data-type="taskList"]) {
-  list-style: none;
-  padding-left: 0;
-}
-
-:deep(.tiptap ul[data-type="taskList"] li) {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
 /* Selection */
 :deep(.tiptap ::selection) {
   background-color: rgba(79, 124, 255, 0.15);
+}
+
+/* Image */
+:deep(.tiptap img) {
+  display: block;
+  max-width: 75%;
+  max-height: 560px;
+  height: auto;
+  object-fit: scale-down;
+  border-radius: 16px;
+  margin: 32px auto;
+  cursor: zoom-in;
 }
 </style>

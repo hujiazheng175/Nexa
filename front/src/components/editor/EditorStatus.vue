@@ -11,7 +11,7 @@
         <Maximize v-if="!isFocusMode" class="h-4 w-4" />
         <Minimize v-else class="h-4 w-4" />
         <span class="focus-mode-text">
-          {{ isFocusMode ? '专注中' : '专注模式' }}
+          {{ isFocusMode ? '退出专注模式' : '专注模式' }}
         </span>
       </button>
     </div>
