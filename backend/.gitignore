@@ -34,3 +34,6 @@ build/
 
 ### Environment Variables ###
 .env
+
+### Local secrets ###
+application-local.properties

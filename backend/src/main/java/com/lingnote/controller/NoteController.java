@@ -1,5 +1,6 @@
 package com.lingnote.controller;
 
+import com.lingnote.ai.service.AiService;
 import com.lingnote.common.response.PageResult;
 import com.lingnote.common.response.Result;
 import com.lingnote.dto.CreateNoteDTO;
@@ -7,6 +8,7 @@ import com.lingnote.dto.NoteQueryDTO;
 import com.lingnote.dto.UpdateNoteDTO;
 import com.lingnote.exception.BusinessException;
 import com.lingnote.service.NoteService;
+import com.lingnote.vo.NoteAiRecordVO;
 import com.lingnote.vo.NoteVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class NoteController {
 
     private final NoteService noteService;
+    private final AiService aiService;
 
     @PostMapping
     public Result<NoteVO> create(@Valid @RequestBody CreateNoteDTO dto) {
@@ -80,6 +83,18 @@ public class NoteController {
         validateId(id);
         noteService.permanentDelete(id);
         return Result.success();
+    }
+
+    @PostMapping("/{id}/summarize")
+    public Result<NoteAiRecordVO> summarize(@PathVariable String id) {
+        validateId(id);
+        return Result.success(aiService.summarize(id));
+    }
+
+    @GetMapping("/{id}/summaries/latest")
+    public Result<NoteAiRecordVO> getLatestSummary(@PathVariable String id) {
+        validateId(id);
+        return Result.success(aiService.getLatestSummary(id));
     }
 
     private void validateId(String id) {

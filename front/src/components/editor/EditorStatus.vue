@@ -24,10 +24,12 @@
           :class="dotClass"
         />
         <span class="editor-status-text" :class="{ 'has-error': status === 'error' }">
-          <template v-if="statusLabel">{{ statusLabel }}</template>
+          <template v-if="status === 'saved' && lastSavedAt">
+            {{ formatSaveTime(lastSavedAt) }}
+          </template>
+          <template v-else-if="statusLabel">{{ statusLabel }}</template>
           <template v-else>&nbsp;</template>
         </span>
-        <span v-if="hasChanges && status !== 'saving'" class="unsaved-dot" title="有未保存的更改" />
       </div>
     </div>
   </div>
@@ -50,10 +52,6 @@ const props = defineProps({
     type: [Date, null],
     default: null
   },
-  hasChanges: {
-    type: Boolean,
-    default: false
-  },
   isFocusMode: {
     type: Boolean,
     default: false
@@ -61,6 +59,15 @@ const props = defineProps({
 })
 
 defineEmits(['toggleFocusMode'])
+
+function formatSaveTime(date) {
+  const now = new Date()
+  const diff = now - date
+  if (diff < 60000) return '刚刚保存'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} 分钟前保存`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} 小时前保存`
+  return '已保存'
+}
 
 const dotClass = computed(() => {
   switch (props.status) {
@@ -179,14 +186,6 @@ const dotClass = computed(() => {
 
 .editor-status-text.has-error {
   color: var(--color-error);
-}
-
-.unsaved-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background-color: var(--color-warning);
-  opacity: 0.8;
 }
 
 @keyframes pulse {

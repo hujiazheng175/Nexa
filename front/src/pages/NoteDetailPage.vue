@@ -21,10 +21,9 @@
       <template v-if="currentNote">
         <!-- Status Bar -->
         <EditorStatus
-          :status="autoSave.status"
-          :status-label="autoSave.statusLabel"
-          :last-saved-at="autoSave.lastSavedAt"
-          :has-changes="autoSave.hasChanges"
+          :status="saveStatus"
+          :status-label="saveStatusLabel"
+          :last-saved-at="saveLastSavedAt"
           :is-focus-mode="isFocusMode"
           @toggle-focus-mode="toggleFocusMode"
         />
@@ -62,6 +61,7 @@
       @toggle="toggleAssistant"
       :word-count="wordCount"
       :character-count="characterCount"
+      :note-id="noteId"
     />
 
     <!-- Confirm Dialog -->
@@ -103,12 +103,20 @@ const isAssistantOpen = ref(true)
 const contentRef = ref(null)
 
 // Auto-save composable
-const autoSave = useAutoSave({
+const {
+  status: saveStatus,
+  statusLabel: saveStatusLabel,
+  lastSavedAt: saveLastSavedAt,
+  hasChanges: saveHasChanges,
+  markSaved,
+  markError,
+  reset: resetAutoSave,
+  flush
+} = useAutoSave({
   note: currentNote,
   saveFn: async (id, data) => {
     await noteApi.update(id, data)
-    // Refresh sidebar to update timestamps
-    await loadSidebarNotes()
+    sidebarRef.value?.loadSidebarNotes()
   },
   debounceMs: 800
 })
@@ -145,11 +153,11 @@ const loadNote = async (id) => {
     const note = await noteApi.getById(id)
     currentNote.value = note
     // Mark as saved after successful load
-    autoSave.markSaved()
+    markSaved()
   } catch (error) {
     console.error('加载笔记失败:', error)
     currentNote.value = null
-    autoSave.markError('加载失败')
+    markError('加载失败')
   }
 }
 
@@ -176,7 +184,7 @@ onMounted(() => {
 // Reset auto-save state when switching notes
 watch(() => route.params.id, (newId, oldId) => {
   if (newId && oldId && newId !== oldId) {
-    autoSave.reset()
+    resetAutoSave()
   }
   if (newId) {
     loadNote(newId)
@@ -217,7 +225,7 @@ const onConfirm = async () => {
 // Intercept navigation away from editor page
 onBeforeRouteLeave(async (to, from, next) => {
   // Flush any pending auto-save before leaving
-  const saved = await autoSave.flush()
+  const saved = await flush()
   if (saved) {
     next()
     return
@@ -225,7 +233,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 
   // Save failed or user cancelled
   // Show confirmation if there are unsaved changes
-  if (autoSave.hasChanges.value) {
+  if (saveHasChanges) {
     confirmTitle.value = '有未保存的更改'
     confirmMessage.value = '是否放弃更改并离开？'
     confirmConfirmText.value = '放弃并离开'

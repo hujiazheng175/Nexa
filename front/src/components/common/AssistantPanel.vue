@@ -66,10 +66,39 @@
 
       <!-- Summary Tab -->
       <div v-else-if="activeTab === 'summary'" class="tab-panel">
-        <div class="empty-state">
+        <!-- No note selected -->
+        <div v-if="!noteId" class="empty-state">
           <Sparkles class="empty-icon" />
-          <p class="empty-text">AI 摘要功能即将上线</p>
-          <p class="empty-desc">自动为你的笔记生成摘要</p>
+          <p class="empty-text">选择一篇笔记以生成摘要</p>
+          <p class="empty-desc">AI 将自动提炼核心内容</p>
+        </div>
+
+        <!-- Loading -->
+        <div v-else-if="summaryLoading" class="summary-loading">
+          <div class="skeleton-line skeleton-line-short" />
+          <div class="skeleton-line" />
+          <div class="skeleton-line" />
+          <div class="skeleton-line skeleton-line-short" />
+        </div>
+
+        <!-- Has summary -->
+        <div v-else-if="summaryResult" class="summary-result">
+          <p class="summary-text">{{ summaryResult }}</p>
+          <button class="regenerate-btn" :disabled="summaryLoading" @click="generate">
+            <Sparkles class="h-3 w-3" />
+            重新生成
+          </button>
+        </div>
+
+        <!-- No summary yet -->
+        <div v-else class="empty-state">
+          <Sparkles class="empty-icon" />
+          <p class="empty-text">AI 智能摘要</p>
+          <p class="empty-desc">一键提取笔记核心内容</p>
+          <button class="generate-btn" :disabled="summaryLoading" @click="generate">
+            <Sparkles class="h-4 w-4" />
+            生成摘要
+          </button>
         </div>
       </div>
 
@@ -86,18 +115,54 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Sparkles, ChevronLeft, ChevronRight, FileText, Tag } from 'lucide-vue-next'
+import { aiApi } from '@/api/ai'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: true },
   wordCount: { type: Number, default: 0 },
-  characterCount: { type: Number, default: 0 }
+  characterCount: { type: Number, default: 0 },
+  noteId: { type: String, default: null }
 })
 
 defineEmits(['toggle'])
 
 const activeTab = ref('info')
+const summaryResult = ref(null)
+const summaryLoading = ref(false)
+
+async function loadLatestSummary() {
+  if (!props.noteId) {
+    summaryResult.value = null
+    return
+  }
+  try {
+    const data = await aiApi.getLatestSummary(props.noteId)
+    summaryResult.value = data?.result || null
+  } catch {
+    summaryResult.value = null
+  }
+}
+
+async function generate() {
+  if (!props.noteId || summaryLoading.value) return
+  summaryLoading.value = true
+  try {
+    const data = await aiApi.generateSummary(props.noteId)
+    summaryResult.value = data?.result || null
+    window.$toast?.show('摘要已生成')
+  } catch (err) {
+    window.$toast?.show(err.message || '摘要生成失败')
+  } finally {
+    summaryLoading.value = false
+  }
+}
+
+watch(() => props.noteId, () => {
+  summaryResult.value = null
+  loadLatestSummary()
+}, { immediate: true })
 
 const readTime = computed(() => {
   return Math.max(1, Math.ceil(props.characterCount / 500))
@@ -274,5 +339,90 @@ const readTime = computed(() => {
   font-size: 12px;
   color: var(--color-text-muted);
   opacity: 0.7;
+}
+
+/* Generate Button */
+.generate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-12);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #FFFFFF;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.generate-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Summary Result */
+.summary-result {
+  padding: var(--space-8) 0;
+}
+
+.summary-text {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+}
+
+.regenerate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+  padding: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.regenerate-btn:hover:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.regenerate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Summary Loading Skeleton */
+.summary-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.04) 25%, rgba(15, 23, 42, 0.08) 50%, rgba(15, 23, 42, 0.04) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+.skeleton-line-short {
+  width: 60%;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 </style>
