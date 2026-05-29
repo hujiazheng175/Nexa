@@ -14,10 +14,6 @@ public interface NoteService {
 
     NoteVO getById(String id);
 
-    /** @deprecated use {@link #listNotes(NoteQueryDTO)} instead */
-    @Deprecated
-    List<NoteVO> listAll();
-
     PageResult<NoteVO> listNotes(NoteQueryDTO query);
 
     NoteVO update(String id, UpdateNoteDTO dto);
@@ -41,4 +37,7 @@ public interface NoteService {
 
     /** Clean up trashed notes older than specified days */
     void cleanupOldTrash(int days);
+
+    /** Move note to a category */
+    void moveToCategory(String id, String categoryId);
 }

@@ -4,13 +4,11 @@
     <EditorSidebar
       v-show="!isFocusMode"
       ref="sidebarRef"
-      :notes="sidebarNotes"
       :selected-note-id="noteId"
-      :search-query="searchQuery"
       :is-collapsed="isSidebarCollapsed"
       @select="handleSelectNote"
       @create="handleCreateNote"
-      @update:search-query="handleSearch"
+      @create-in-category="handleCreateNoteInCategory"
       @toggle-collapse="toggleSidebar"
       @back="backToHome"
       @delete="handleDeleteNote"
@@ -37,10 +35,27 @@
             @enter="focusContent"
           />
 
-          <!-- Saved time -->
-          <p v-if="saveLastSavedAt" class="editor-save-time">
-            {{ formattedSaveTime }}
-          </p>
+          <!-- Category + Save time -->
+          <div class="editor-meta">
+            <div class="editor-category" v-if="categories.length">
+              <Folder class="h-3.5 w-3.5" />
+              <select
+                class="category-select"
+                :value="currentNote?.categoryId || ''"
+                @change="moveCategory($event.target.value)"
+              >
+                <option value="">未分类</option>
+                <option
+                  v-for="cat in categories"
+                  :key="cat.id"
+                  :value="cat.id"
+                >{{ cat.name }}</option>
+              </select>
+            </div>
+            <p v-if="saveLastSavedAt" class="editor-save-time">
+              {{ formattedSaveTime }}
+            </p>
+          </div>
 
           <!-- Inline Summary: expanded -->
           <div v-if="inlineSummary?.result && summaryExpanded" class="inline-summary">
@@ -57,7 +72,7 @@
               <button
                 class="inline-summary-regenerate"
                 :disabled="summaryGenerating"
-                @click="regenerateInlineSummary"
+                @click="generateInlineSummary"
               >
                 <Sparkles class="h-3 w-3" />
                 重新生成
@@ -138,9 +153,10 @@ import AssistantPanel from '@/components/common/AssistantPanel.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { noteApi } from '@/api/note'
 import { aiApi } from '@/api/ai'
+import { categoryApi } from '@/api/category'
 import { useAutoSave } from '@/composables/useAutoSave'
 import { useFocusMode } from '@/composables/useFocusMode'
-import { Sparkles, ChevronUp } from 'lucide-vue-next'
+import { Sparkles, ChevronUp, Folder } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -148,8 +164,6 @@ const noteId = computed(() => route.params.id)
 
 // State
 const currentNote = ref(null)
-const sidebarNotes = ref([])
-const searchQuery = ref('')
 const isSidebarCollapsed = ref(true)
 const sidebarRef = ref(null)
 const isAssistantOpen = ref(false)
@@ -158,8 +172,25 @@ const inlineSummary = ref(null)
 const summaryExpanded = ref(false)
 const summaryGenerating = ref(false)
 
-async function regenerateInlineSummary() {
-  await generateInlineSummary()
+const categories = ref([])
+
+async function loadCategories() {
+  try {
+    const data = await categoryApi.tree()
+    categories.value = data || []
+  } catch {
+    categories.value = []
+  }
+}
+
+async function moveCategory(categoryId) {
+  if (!currentNote.value?.id) return
+  try {
+    await noteApi.moveToCategory(currentNote.value.id, categoryId || null)
+    currentNote.value.categoryId = categoryId || null
+  } catch {
+    // ignore
+  }
 }
 
 async function generateInlineSummary() {
@@ -204,7 +235,7 @@ const {
   note: currentNote,
   saveFn: async (id, data) => {
     await noteApi.update(id, data)
-    sidebarRef.value?.loadSidebarNotes()
+    sidebarRef.value?.refreshNotes()
   },
   debounceMs: 800
 })
@@ -268,25 +299,10 @@ const loadNote = async (id) => {
   }
 }
 
-// Load sidebar notes
-const loadSidebarNotes = async () => {
-  try {
-    const data = await noteApi.getList({
-      keyword: searchQuery.value || undefined,
-      sortBy: 'updatedAt',
-      sortOrder: 'desc'
-    })
-    sidebarNotes.value = data?.records || []
-  } catch (error) {
-    console.error('加载侧边栏笔记列表失败:', error)
-    sidebarNotes.value = []
-  }
-}
-
 onMounted(() => {
   loadNote(noteId.value)
-  loadSidebarNotes()
   loadInlineSummary()
+  loadCategories()
 })
 
 // Reset auto-save state when switching notes
@@ -317,7 +333,7 @@ const onConfirm = async () => {
     if (!id) return
     try {
       await noteApi.delete(id)
-      sidebarRef.value?.loadSidebarNotes()
+      sidebarRef.value?.refreshNotes()
       if (id === noteId.value) {
         router.push('/')
       }
@@ -342,7 +358,7 @@ onBeforeRouteLeave(async (to, from, next) => {
 
   // Save failed or user cancelled
   // Show confirmation if there are unsaved changes
-  if (saveHasChanges) {
+  if (saveHasChanges.value) {
     confirmTitle.value = '有未保存的更改'
     confirmMessage.value = '是否放弃更改并离开？'
     confirmConfirmText.value = '放弃并离开'
@@ -361,11 +377,11 @@ const handleSelectNote = (id) => {
   router.push(`/notes/${id}`)
 }
 
-const handleCreateNote = async () => {
+const handleCreateNoteInCategory = async (categoryId) => {
   try {
-    const newNote = await noteApi.create({ title: '无标题笔记', content: '' })
+    const newNote = await noteApi.create({ title: '无标题笔记', content: '', categoryId })
     if (newNote?.id) {
-      sidebarRef.value?.loadSidebarNotes()
+      sidebarRef.value?.refreshNotes()
       router.push(`/notes/${newNote.id}`)
     }
   } catch (error) {
@@ -373,9 +389,20 @@ const handleCreateNote = async () => {
   }
 }
 
-const handleSearch = (query) => {
-  searchQuery.value = query
-  sidebarRef.value?.loadSidebarNotes()
+const handleCreateNote = async () => {
+  try {
+    const newNote = await noteApi.create({
+      title: '无标题笔记',
+      content: '',
+      categoryId: currentNote.value?.categoryId || null
+    })
+    if (newNote?.id) {
+      sidebarRef.value?.refreshNotes()
+      router.push(`/notes/${newNote.id}`)
+    }
+  } catch (error) {
+    console.error('创建笔记失败:', error)
+  }
 }
 
 const toggleSidebar = () => {
@@ -391,9 +418,9 @@ const backToHome = () => {
 }
 
 const handleDeleteNote = (id) => {
-  confirmTitle.value = '确认删除'
-  confirmMessage.value = '此操作无法撤销，确定要删除这篇笔记吗？'
-  confirmConfirmText.value = '确认删除'
+  confirmTitle.value = '移至回收站'
+  confirmMessage.value = '笔记将被移至回收站，15 天后自动清空。可随时从回收站恢复。'
+  confirmConfirmText.value = '移至回收站'
   confirmAction.value = { type: 'delete', id }
   confirmDialogRef.value?.show()
 }
@@ -427,8 +454,45 @@ const handleDeleteNote = (id) => {
   background-color: var(--color-border-light);
 }
 
-.editor-save-time {
+.editor-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin: 4px 0 0;
+  min-height: 20px;
+}
+
+.editor-category {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-muted);
+}
+
+.category-select {
+  padding: 0 20px 0 4px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.category-select:hover,
+.category-select:focus {
+  color: var(--color-text-secondary);
+}
+
+.editor-save-time {
+  margin: 0;
   font-size: 13px;
   color: var(--color-text-muted);
   letter-spacing: 0.02em;

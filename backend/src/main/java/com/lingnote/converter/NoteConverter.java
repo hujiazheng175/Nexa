@@ -1,7 +1,6 @@
 package com.lingnote.converter;
 
 import com.lingnote.dto.CreateNoteDTO;
-import com.lingnote.dto.UpdateNoteDTO;
 import com.lingnote.entity.NoteEntity;
 import com.lingnote.vo.NoteVO;
 import org.springframework.stereotype.Component;
@@ -15,13 +14,7 @@ public class NoteConverter {
         NoteEntity entity = new NoteEntity();
         entity.setTitle(dto.getTitle());
         entity.setContent(dto.getContent());
-        return entity;
-    }
-
-    public NoteEntity toEntity(UpdateNoteDTO dto) {
-        NoteEntity entity = new NoteEntity();
-        entity.setTitle(dto.getTitle());
-        entity.setContent(dto.getContent());
+        entity.setCategoryId(dto.getCategoryId());
         return entity;
     }
 
@@ -33,6 +26,7 @@ public class NoteConverter {
         vo.setCreatedAt(entity.getCreatedAt());
         vo.setUpdatedAt(entity.getUpdatedAt());
         vo.setDeletedAt(entity.getDeletedAt());
+        vo.setCategoryId(entity.getCategoryId());
         return vo;
     }
 

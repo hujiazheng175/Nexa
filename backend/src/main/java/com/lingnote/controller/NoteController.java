@@ -11,6 +11,7 @@ import com.lingnote.service.NoteService;
 import com.lingnote.vo.NoteAiRecordVO;
 import com.lingnote.vo.NoteVO;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -95,6 +96,13 @@ public class NoteController {
     public Result<NoteAiRecordVO> getLatestSummary(@PathVariable String id) {
         validateId(id);
         return Result.success(aiService.getLatestSummary(id));
+    }
+
+    @PutMapping("/{id}/category")
+    public Result<Void> moveToCategory(@PathVariable String id, @RequestBody Map<String, String> body) {
+        validateId(id);
+        noteService.moveToCategory(id, body.get("categoryId"));
+        return Result.success();
     }
 
     private void validateId(String id) {

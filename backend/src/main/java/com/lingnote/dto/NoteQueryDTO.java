@@ -17,6 +17,9 @@ public class NoteQueryDTO {
     /** Sort order: asc or desc */
     private String sortOrder = "desc";
 
+    /** Filter by category */
+    private String categoryId;
+
     public int getPage() {
         return Math.max(1, page);
     }

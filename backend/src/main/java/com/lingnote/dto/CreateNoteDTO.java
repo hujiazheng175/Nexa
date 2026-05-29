@@ -10,4 +10,6 @@ public class CreateNoteDTO {
     private String title;
 
     private String content;
+
+    private String categoryId;
 }

@@ -43,13 +43,6 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public List<NoteVO> listAll() {
-        LambdaQueryWrapper<NoteEntity> wrapper = buildQueryWrapper(null);
-        List<NoteEntity> entities = noteMapper.selectList(wrapper);
-        return noteConverter.toVOList(entities);
-    }
-
-    @Override
     public PageResult<NoteVO> listNotes(NoteQueryDTO query) {
         Page<NoteEntity> page = new Page<>(query.getPage(), query.getSize());
         LambdaQueryWrapper<NoteEntity> wrapper = buildQueryWrapper(query);
@@ -151,6 +144,19 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
+    public void moveToCategory(String id, String categoryId) {
+        NoteEntity entity = noteMapper.selectById(id);
+        if (entity == null) {
+            throw new BusinessException(404, "Note not found");
+        }
+        if (entity.getDeleted() == 1) {
+            throw new BusinessException(400, "不能修改回收站中笔记的分类");
+        }
+        entity.setCategoryId(categoryId);
+        noteMapper.updateById(entity);
+    }
+
+    @Override
     public void cleanupOldTrash(int days) {
         LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
         LambdaQueryWrapper<NoteEntity> wrapper = new LambdaQueryWrapper<>();
@@ -169,6 +175,10 @@ public class NoteServiceImpl implements NoteService {
         // Manual soft-delete filter (replaces @TableLogic)
         if (!includeTrashed) {
             wrapper.eq(NoteEntity::getDeleted, 0);
+        }
+
+        if (query != null && StringUtils.hasText(query.getCategoryId())) {
+            wrapper.eq(NoteEntity::getCategoryId, query.getCategoryId());
         }
 
         if (query != null && StringUtils.hasText(query.getKeyword())) {

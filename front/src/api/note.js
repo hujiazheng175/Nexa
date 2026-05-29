@@ -4,9 +4,6 @@ export const noteApi = {
   getList(params) {
     return request.get('/notes', { params })
   },
-  getAll(params) {
-    return request.get('/notes', { params: { ...params, page: 1, size: 100 } })
-  },
   getById(id) {
     return request.get(`/notes/${id}`)
   },
@@ -34,5 +31,9 @@ export const noteApi = {
   },
   emptyTrash() {
     return request.delete('/notes/trash')
+  },
+
+  moveToCategory(id, categoryId) {
+    return request.put(`/notes/${id}/category`, { categoryId })
   }
 }

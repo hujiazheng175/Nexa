@@ -6,27 +6,21 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("note")
-public class NoteEntity {
+@TableName("category")
+public class CategoryEntity {
 
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
-    private String title;
+    private String name;
 
-    private String content;
+    private String parentId;
+
+    private Integer sortOrder;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
-
-    /** Logical delete flag: 0 = active, 1 = trashed */
-    private Integer deleted;
-
-    /** Timestamp when the note was moved to trash */
-    private LocalDateTime deletedAt;
-
-    private String categoryId;
 }

@@ -1,13 +1,18 @@
 <template>
   <div class="trash-page">
     <!-- Sidebar -->
-    <Sidebar
-      ref="sidebarRef"
-      :selected-note-id="null"
-      @select="handleSelectNote"
-      @create="handleCreateNote"
-      @delete="handleDeleteNote"
-    />
+    <aside class="trash-sidebar">
+      <div class="sidebar-header">
+        <button class="sidebar-back" @click="router.push('/')">
+          <ChevronLeft class="h-4 w-4" />
+          <span>返回</span>
+        </button>
+      </div>
+      <div class="sidebar-title-row">
+        <Trash2 class="h-4 w-4" />
+        <span>回收站</span>
+      </div>
+    </aside>
 
     <!-- Main Content -->
     <main class="trash-main">
@@ -167,7 +172,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Clock,
@@ -175,16 +180,15 @@ import {
   Trash2,
   ArchiveX,
   Search,
-  X
+  X,
+  ChevronLeft
 } from 'lucide-vue-next'
-import Sidebar from '@/components/layout/Sidebar.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { noteApi } from '@/api/note'
 import { extractPreview } from '@/utils/html'
 
 const router = useRouter()
 
-const sidebarRef = ref(null)
 const trashedNotes = ref([])
 const total = ref(0)
 const loading = ref(false)
@@ -243,8 +247,6 @@ const doRestore = async (id) => {
     await noteApi.restore(id)
     closePreview()
     await loadTrashedNotes()
-    sidebarRef.value?.loadSidebarNotes()
-    sidebarRef.value?.loadTrashCount()
     window.$toast?.show('笔记已恢复')
   } catch (error) {
     console.error('恢复笔记失败:', error)
@@ -277,7 +279,6 @@ const onConfirmPermanentDelete = async () => {
     await noteApi.permanentDelete(id)
     closePreview()
     await loadTrashedNotes()
-    sidebarRef.value?.loadTrashCount()
     window.$toast?.show('笔记已永久删除')
   } catch (error) {
     console.error('永久删除失败:', error)
@@ -295,33 +296,11 @@ const onConfirmEmptyTrash = async () => {
   try {
     await noteApi.emptyTrash()
     await loadTrashedNotes()
-    sidebarRef.value?.loadTrashCount()
     window.$toast?.show('回收站已清空')
   } catch (error) {
     console.error('清空回收站失败:', error)
     window.$toast?.show('清空失败')
   }
-}
-
-const handleSelectNote = (id) => {
-  if (id) {
-    router.push(`/notes/${id}`)
-  }
-}
-
-const handleCreateNote = async () => {
-  try {
-    const newNote = await noteApi.create({ title: '无标题笔记', content: '' })
-    if (newNote?.id) {
-      router.push(`/notes/${newNote.id}`)
-    }
-  } catch (error) {
-    console.error('创建笔记失败:', error)
-  }
-}
-
-const handleDeleteNote = (id) => {
-  noteApi.delete(id)
 }
 
 const formatDate = (dateString) => {
@@ -349,6 +328,10 @@ watch(searchQuery, () => {
 onMounted(() => {
   loadTrashedNotes()
 })
+
+onUnmounted(() => {
+  clearTimeout(searchTimer)
+})
 </script>
 
 <style scoped>
@@ -356,6 +339,53 @@ onMounted(() => {
   display: flex;
   height: 100vh;
   overflow: hidden;
+}
+
+.trash-sidebar {
+  flex-shrink: 0;
+  width: 220px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(15, 23, 42, 0.04);
+  background: rgba(245, 247, 250, 0.5);
+}
+
+.trash-sidebar .sidebar-header {
+  padding: 20px 16px 12px;
+}
+
+.trash-sidebar .sidebar-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.trash-sidebar .sidebar-back:hover {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--color-text-primary);
+}
+
+.trash-sidebar .sidebar-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.trash-sidebar .sidebar-title-row svg {
+  color: var(--color-text-muted);
 }
 
 .trash-main {
@@ -529,7 +559,6 @@ onMounted(() => {
 }
 
 .trash-card:hover {
-  border-color: var(--color-border);
   box-shadow: var(--shadow-soft);
 }
 

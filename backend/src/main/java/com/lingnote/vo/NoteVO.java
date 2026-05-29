@@ -14,4 +14,5 @@ public class NoteVO {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
     private Integer remainingDays;
+    private String categoryId;
 }
