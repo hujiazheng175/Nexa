@@ -274,9 +274,10 @@ defineExpose({
 .editor-content {
   width: 100%;
   min-height: 50vh;
-  font-size: 16px;
-  line-height: 1.8;
-  color: rgba(31, 41, 55, 0.85);
+  font-family: var(--font-editor);
+  font-size: var(--editor-font-size);
+  line-height: var(--editor-line-height);
+  color: var(--color-text-primary);
   outline: none;
   letter-spacing: 0.01em;
 }
@@ -359,6 +360,7 @@ defineExpose({
 :deep(.tiptap h1),
 :deep(.tiptap h2),
 :deep(.tiptap h3) {
+  font-family: var(--font-heading);
   font-weight: 600;
   letter-spacing: -0.01em;
   margin-top: 2em;

@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-page">
+  <div class="editor-page" :class="currentSpace.class">
     <!-- Sidebar -->
     <EditorSidebar
       v-show="!isFocusMode"
@@ -23,7 +23,9 @@
           :status-label="saveStatusLabel"
           :last-saved-at="saveLastSavedAt"
           :is-focus-mode="isFocusMode"
+          :current-space="currentSpace"
           @toggle-focus-mode="toggleFocusMode"
+          @cycle-space="cycleSpace"
         />
 
         <!-- Editor Shell -->
@@ -156,6 +158,7 @@ import { aiApi } from '@/api/ai'
 import { categoryApi } from '@/api/category'
 import { useAutoSave } from '@/composables/useAutoSave'
 import { useFocusMode } from '@/composables/useFocusMode'
+import { useWritingSpace } from '@/composables/useWritingSpace'
 import { Sparkles, ChevronUp, Folder } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -241,6 +244,8 @@ const {
 })
 
 // Focus mode composable
+const { currentSpace, syncNoteSpace, cycleSpace } = useWritingSpace()
+
 const { isFocusMode, toggleFocusMode } = useFocusMode({
   onEnter: () => {
     // Close assistant when entering focus mode
@@ -290,7 +295,7 @@ const loadNote = async (id) => {
   try {
     const note = await noteApi.getById(id)
     currentNote.value = note
-    // Mark as saved after successful load
+    syncNoteSpace(note.id)
     markSaved()
   } catch (error) {
     console.error('加载笔记失败:', error)

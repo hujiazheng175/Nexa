@@ -328,7 +328,7 @@ const handleUndoDelete = async (id) => {
   display: flex;
   flex-direction: column;
   border-right: 1px solid rgba(15, 23, 42, 0.04);
-  background: rgba(245, 247, 250, 0.5);
+  background: rgba(var(--bg-rgb), 0.5);
 }
 
 .sidebar-brand {

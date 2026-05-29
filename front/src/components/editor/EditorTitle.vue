@@ -83,6 +83,7 @@ watch(() => props.modelValue, async (newValue) => {
   overflow: hidden;
   background: transparent;
   border: none;
+  font-family: var(--font-heading);
   font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -94,7 +95,7 @@ watch(() => props.modelValue, async (newValue) => {
 
 .editor-title:empty:before {
   content: attr(data-placeholder);
-  color: rgba(31, 41, 55, 0.25);
+  color: var(--color-text-muted);
   pointer-events: none;
 }
 

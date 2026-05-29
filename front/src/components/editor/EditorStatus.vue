@@ -3,6 +3,17 @@
     <!-- Left: Focus mode toggle -->
     <div class="editor-status-left">
       <button
+        class="space-switch"
+        @click="$emit('cycleSpace')"
+      >
+        <span
+          class="space-dot"
+          :style="{ backgroundColor: currentSpace?.accent }"
+        />
+        <span class="space-label">{{ currentSpace?.label }}</span>
+      </button>
+
+      <button
         class="focus-mode-btn"
         :class="{ active: isFocusMode }"
         :title="isFocusMode ? '退出专注模式 (Esc)' : '进入专注模式 (Cmd/Ctrl+Shift+F)'"
@@ -55,10 +66,14 @@ const props = defineProps({
   isFocusMode: {
     type: Boolean,
     default: false
+  },
+  currentSpace: {
+    type: Object,
+    default: null
   }
 })
 
-defineEmits(['toggleFocusMode'])
+defineEmits(['toggleFocusMode', 'cycleSpace'])
 
 function formatSaveTime(date) {
   const now = new Date()
@@ -94,6 +109,7 @@ const dotClass = computed(() => {
 .editor-status-left {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .editor-status-right {
@@ -110,6 +126,37 @@ const dotClass = computed(() => {
 }
 
 /* Focus mode button */
+.space-switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity var(--duration-fast) var(--ease-smooth);
+}
+
+.space-switch:hover {
+  opacity: 0.8;
+}
+
+.space-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.space-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
 .focus-mode-btn {
   display: flex;
   align-items: center;

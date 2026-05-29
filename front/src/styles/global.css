@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&family=Ma+Shan+Zheng&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,7 +100,8 @@
   }
 
   .card {
-    background-color: var(--color-card);
+    background: var(--card-bg);
+    backdrop-filter: var(--card-blur);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-soft);
     border: 1px solid var(--color-border-light);

@@ -1,0 +1,103 @@
+/* ========================================
+   Writing Spaces — CSS Variable Overrides
+   ======================================== */
+
+/* Paper Space — warm, literary, slow-paced */
+.space-paper {
+  --color-background: #F6F3EE;
+  --color-editor: #FCFAF6;
+  --bg-rgb: 246, 243, 238;
+  --color-card: #FFFFFF;
+  --color-text-primary: #222222;
+  --color-text-secondary: #7A7A7A;
+  --color-text-muted: #B0A89F;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-light: rgba(0, 0, 0, 0.05);
+  --color-primary: #8B6914;
+  --color-primary-hover: rgba(139, 105, 20, 0.08);
+  --color-error: #C44B4B;
+  --color-warning: #B8935A;
+
+  --font-editor: 'Noto Serif SC', 'Source Han Serif SC', 'STSong', 'Songti SC', serif;
+  --font-heading: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', cursive;
+  --editor-font-size: 17px;
+  --editor-line-height: 1.9;
+  --editor-max-width: 760px;
+  --card-blur: none;
+  --card-bg: var(--color-card);
+}
+
+/* Mist Space — modern, minimal, technical */
+.space-mist {
+  --color-background: #F5F7FA;
+  --color-editor: #F5F7FA;
+  --bg-rgb: 245, 247, 250;
+  --card-blur: blur(18px);
+  --card-bg: rgba(255, 255, 255, 0.72);
+  --color-card: rgba(255, 255, 255, 0.72);
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #94A3B8;
+  --color-border: rgba(15, 23, 42, 0.08);
+  --color-border-light: rgba(15, 23, 42, 0.05);
+  --color-primary: #4F7CFF;
+  --color-primary-hover: rgba(79, 124, 255, 0.08);
+  --color-error: #EF4444;
+  --color-warning: #F59E0B;
+
+  --font-editor: 'Inter', 'PingFang SC', 'HarmonyOS Sans SC', sans-serif;
+  --font-heading: 'Inter', 'PingFang SC', 'HarmonyOS Sans SC', sans-serif;
+  --editor-font-size: 16px;
+  --editor-line-height: 1.8;
+  --editor-max-width: 860px;
+}
+
+/* Midnight Space — immersive, quiet, focused */
+.space-midnight {
+  --color-background: #111315;
+  --color-editor: #161A1D;
+  --bg-rgb: 17, 19, 21;
+  --color-card: #161A1D;
+  --color-text-primary: #E6EAF0;
+  --color-text-secondary: #7D8590;
+  --color-text-muted: #4B5158;
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-light: rgba(255, 255, 255, 0.04);
+  --color-primary: #A5B4FC;
+  --color-primary-hover: rgba(165, 180, 252, 0.08);
+  --color-error: #F87171;
+  --color-warning: #FBBF24;
+
+  --font-editor: 'Inter', 'PingFang SC', 'HarmonyOS Sans SC', sans-serif;
+  --font-heading: 'Inter', 'PingFang SC', 'HarmonyOS Sans SC', sans-serif;
+  --editor-font-size: 16px;
+  --editor-line-height: 2.0;
+  --editor-max-width: 760px;
+  --card-blur: none;
+  --card-bg: var(--color-card);
+}
+
+/* Forest Space — soft, breathable, calming */
+.space-forest {
+  --color-background: #EEF2EC;
+  --color-editor: #F5F8F3;
+  --bg-rgb: 238, 242, 236;
+  --color-card: rgba(255, 255, 255, 0.68);
+  --color-text-primary: #1F2A22;
+  --color-text-secondary: #5A6B5C;
+  --color-text-muted: #8FA392;
+  --color-border: rgba(31, 42, 34, 0.08);
+  --color-border-light: rgba(31, 42, 34, 0.05);
+  --color-primary: #6B8F71;
+  --color-primary-hover: rgba(107, 143, 113, 0.08);
+  --color-error: #C44B4B;
+  --color-warning: #B8935A;
+
+  --font-editor: 'ZCOOL XiaoWei', 'STKaiti', 'KaiTi', serif;
+  --font-heading: 'Inter', 'PingFang SC', 'HarmonyOS Sans SC', sans-serif;
+  --editor-font-size: 18px;
+  --editor-line-height: 2.0;
+  --editor-max-width: 780px;
+  --card-blur: none;
+  --card-bg: var(--color-card);
+}

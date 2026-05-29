@@ -13,12 +13,12 @@
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background-color: var(--color-background);
+  background-color: var(--color-editor);
 }
 
 .editor-shell-inner {
   width: 100%;
-  max-width: 860px;
+  max-width: var(--editor-max-width);
   padding: 24px 32px 160px;
 }
 </style>
