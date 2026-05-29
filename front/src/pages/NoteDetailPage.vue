@@ -37,6 +37,58 @@
             @enter="focusContent"
           />
 
+          <!-- Saved time -->
+          <p v-if="saveLastSavedAt" class="editor-save-time">
+            {{ formattedSaveTime }}
+          </p>
+
+          <!-- Inline Summary: expanded -->
+          <div v-if="inlineSummary?.result && summaryExpanded" class="inline-summary">
+            <div class="inline-summary-header">
+              <Sparkles class="h-3.5 w-3.5" />
+              <span>AI 摘要</span>
+              <button class="inline-summary-close" @click="summaryExpanded = false" title="收起">
+                <ChevronUp class="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <pre class="inline-summary-text">{{ inlineSummary.result }}</pre>
+            <div class="inline-summary-footer">
+              <span class="inline-summary-time">{{ formattedSummaryTime }}</span>
+              <button
+                class="inline-summary-regenerate"
+                :disabled="summaryGenerating"
+                @click="regenerateInlineSummary"
+              >
+                <Sparkles class="h-3 w-3" />
+                重新生成
+              </button>
+            </div>
+          </div>
+
+          <!-- Inline Summary: collapsed -->
+          <button
+            v-else-if="inlineSummary?.result && !summaryExpanded"
+            class="inline-summary-reopen"
+            @click="summaryExpanded = true"
+          >
+            <Sparkles class="h-3.5 w-3.5" />
+            <span>AI 摘要</span>
+            <span class="inline-summary-hint">已折叠</span>
+          </button>
+
+          <!-- Inline Summary: loading -->
+          <p v-else-if="summaryGenerating" class="inline-summary-loading">正在生成摘要...</p>
+
+          <!-- Inline Summary: none yet -->
+          <button
+            v-else
+            class="inline-summary-generate"
+            @click="generateInlineSummary"
+          >
+            <Sparkles class="h-3.5 w-3.5" />
+            <span>AI 摘要</span>
+          </button>
+
           <!-- Divider -->
           <div class="editor-divider" />
 
@@ -61,7 +113,6 @@
       @toggle="toggleAssistant"
       :word-count="wordCount"
       :character-count="characterCount"
-      :note-id="noteId"
     />
 
     <!-- Confirm Dialog -->
@@ -86,8 +137,10 @@ import EditorStatus from '@/components/editor/EditorStatus.vue'
 import AssistantPanel from '@/components/common/AssistantPanel.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { noteApi } from '@/api/note'
+import { aiApi } from '@/api/ai'
 import { useAutoSave } from '@/composables/useAutoSave'
 import { useFocusMode } from '@/composables/useFocusMode'
+import { Sparkles, ChevronUp } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -97,10 +150,45 @@ const noteId = computed(() => route.params.id)
 const currentNote = ref(null)
 const sidebarNotes = ref([])
 const searchQuery = ref('')
-const isSidebarCollapsed = ref(false)
+const isSidebarCollapsed = ref(true)
 const sidebarRef = ref(null)
-const isAssistantOpen = ref(true)
+const isAssistantOpen = ref(false)
 const contentRef = ref(null)
+const inlineSummary = ref(null)
+const summaryExpanded = ref(false)
+const summaryGenerating = ref(false)
+
+async function regenerateInlineSummary() {
+  await generateInlineSummary()
+}
+
+async function generateInlineSummary() {
+  if (!noteId.value || summaryGenerating.value) return
+  summaryGenerating.value = true
+  try {
+    await aiApi.generateSummary(noteId.value)
+    await loadInlineSummary()
+    summaryExpanded.value = true
+    window.$toast?.show('摘要已生成')
+  } catch (err) {
+    window.$toast?.show(err.message || '摘要生成失败')
+  } finally {
+    summaryGenerating.value = false
+  }
+}
+
+const loadInlineSummary = async () => {
+  if (!noteId.value) {
+    inlineSummary.value = null
+    return
+  }
+  try {
+    const data = await aiApi.getLatestSummary(noteId.value)
+    inlineSummary.value = data?.result ? { result: data.result, createdAt: data.createdAt } : null
+  } catch {
+    inlineSummary.value = null
+  }
+}
 
 // Auto-save composable
 const {
@@ -142,6 +230,25 @@ const characterCount = computed(() => {
   return text.replace(/<[^>]*>/g, '').length || 0
 })
 
+const formattedSaveTime = computed(() => {
+  if (!saveLastSavedAt.value) return ''
+  const d = saveLastSavedAt.value
+  const year = d.getFullYear()
+  const month = d.getMonth() + 1
+  const day = d.getDate()
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${year}年${month}月${day}日 ${hh}:${mm} 保存`
+})
+
+const formattedSummaryTime = computed(() => {
+  if (!inlineSummary.value?.createdAt) return ''
+  const d = new Date(inlineSummary.value.createdAt)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${hh}:${mm} 生成`
+})
+
 const focusContent = () => {
   contentRef.value?.editor?.value?.commands.focus()
 }
@@ -179,6 +286,7 @@ const loadSidebarNotes = async () => {
 onMounted(() => {
   loadNote(noteId.value)
   loadSidebarNotes()
+  loadInlineSummary()
 })
 
 // Reset auto-save state when switching notes
@@ -188,6 +296,7 @@ watch(() => route.params.id, (newId, oldId) => {
   }
   if (newId) {
     loadNote(newId)
+    loadInlineSummary()
   }
 })
 
@@ -316,5 +425,147 @@ const handleDeleteNote = (id) => {
   height: 1px;
   margin: 24px 0;
   background-color: var(--color-border-light);
+}
+
+.editor-save-time {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* Inline Summary Card */
+.inline-summary {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(79, 124, 255, 0.04);
+  border: 1px solid rgba(79, 124, 255, 0.08);
+}
+
+.inline-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.inline-summary-regenerate {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.inline-summary-regenerate:hover:not(:disabled) {
+  color: var(--color-text-secondary);
+}
+
+.inline-summary-regenerate:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.inline-summary-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.inline-summary-time {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.inline-summary-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 2px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.inline-summary-close:hover {
+  color: var(--color-text-primary);
+}
+
+.inline-summary-text {
+  margin: 0;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  white-space: pre-wrap;
+  background: none;
+}
+
+.inline-summary-reopen {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: rgba(79, 124, 255, 0.04);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+.inline-summary-reopen:hover {
+  background: rgba(79, 124, 255, 0.08);
+  color: var(--color-primary);
+}
+
+.inline-summary-hint {
+  margin-left: auto;
+  opacity: 0.5;
+}
+
+.inline-summary-loading {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.inline-summary-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-smooth);
+}
+
+.inline-summary-generate:hover {
+  color: var(--color-text-secondary);
 }
 </style>

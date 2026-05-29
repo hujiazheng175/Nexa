@@ -19,6 +19,6 @@
 .editor-shell-inner {
   width: 100%;
   max-width: 860px;
-  padding: 24px 40px 160px;
+  padding: 24px 32px 160px;
 }
 </style>

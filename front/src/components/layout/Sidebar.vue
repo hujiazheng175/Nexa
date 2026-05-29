@@ -184,8 +184,8 @@ defineExpose({
   height: 100vh;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--color-border-light);
-  background-color: var(--color-background);
+  border-right: 1px solid rgba(15, 23, 42, 0.04);
+  background-color: rgba(245, 247, 250, 0.5);
 }
 
 .sidebar-logo {
@@ -247,7 +247,7 @@ defineExpose({
 
 .search-input:focus {
   background-color: var(--color-card);
-  border-color: var(--color-border);
+  border-color: rgba(15, 23, 42, 0.08);
   box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
 }
 
@@ -354,11 +354,11 @@ defineExpose({
 }
 
 .nav-item:hover {
-  background-color: rgba(15, 23, 42, 0.04);
+  background-color: rgba(15, 23, 42, 0.06);
 }
 
 .nav-item.active {
-  background-color: rgba(79, 124, 255, 0.08);
+  background-color: rgba(79, 124, 255, 0.1);
   color: var(--color-text-primary);
 }
 
@@ -387,7 +387,7 @@ defineExpose({
 }
 
 .sidebar-footer {
-  border-top: 1px solid var(--color-border-light);
+  border-top: 1px solid rgba(15, 23, 42, 0.04);
   padding: 12px 20px;
 }
 
