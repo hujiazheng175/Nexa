@@ -16,7 +16,7 @@
 
     <!-- Editor Area -->
     <main class="editor-main">
-      <!-- Outline Panel (left whitespace) -->
+      <!-- Floating Outline (absolute, slides in from left) -->
       <OutlinePanel
         :headings="outlineHeadings"
         :active-id="outlineActiveId"
@@ -35,8 +35,11 @@
             :last-saved-at="saveLastSavedAt"
             :is-focus-mode="isFocusMode"
             :current-space="currentSpace"
+            :is-outline-open="outlineExpanded"
+            :outline-count="outlineHeadings.length"
             @toggle-focus-mode="toggleFocusMode"
             @cycle-space="cycleSpace"
+            @toggle-outline="outlineExpanded = !outlineExpanded"
           />
 
           <!-- Editor Shell -->
@@ -469,6 +472,7 @@ const handleDeleteNote = (id) => {
 .editor-main {
   flex: 1;
   display: flex;
+  position: relative;
   overflow: hidden;
   background-color: var(--color-background);
 }
@@ -478,7 +482,6 @@ const handleDeleteNote = (id) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-width: 0;
 }
 
 .loading-placeholder {

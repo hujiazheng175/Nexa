@@ -1,66 +1,50 @@
 <template>
-  <div class="outline-area" :class="{ expanded }">
-    <!-- ============================================
-         Collapsed: floating capsule button
-         ============================================ -->
-    <div v-if="!expanded" class="outline-capsule-area">
-      <button
-        class="outline-capsule"
-        @click="$emit('toggle')"
-        title="展开大纲"
-      >
-        <List class="capsule-icon" />
-        <span class="capsule-label">大纲</span>
-        <span v-if="headings.length" class="capsule-badge">{{ headings.length }}</span>
+  <!-- ============================================
+       Floating outline — absolutely positioned
+       Slides in/out from left, content unaffected
+       ============================================ -->
+  <aside class="outline-float" :class="{ open: expanded }">
+    <!-- Header -->
+    <div class="outline-header">
+      <div class="outline-header-left">
+        <List class="h-3.5 w-3.5" />
+        <span class="outline-title">大纲</span>
+      </div>
+      <button class="outline-close-btn" @click="$emit('toggle')" title="收起大纲">
+        <X class="h-3.5 w-3.5" />
       </button>
     </div>
 
-    <!-- ============================================
-         Expanded: full outline panel
-         ============================================ -->
-    <div v-else class="outline-body">
-      <!-- Header -->
-      <div class="outline-header">
-        <div class="outline-header-left">
-          <List class="h-3.5 w-3.5" />
-          <span class="outline-title">大纲</span>
-        </div>
-        <button class="outline-collapse-btn" @click="$emit('toggle')" title="收起大纲">
-          <X class="h-3.5 w-3.5" />
-        </button>
-      </div>
-
-      <!-- Empty state -->
-      <div v-if="headings.length === 0" class="outline-empty">
-        <p class="outline-empty-text">暂无标题</p>
-        <p class="outline-empty-hint">使用 H1-H3 标题<br />构建文章结构</p>
-      </div>
-
-      <!-- Heading list -->
-      <nav v-else class="outline-list">
-        <button
-          v-for="h in headings"
-          :key="h.id"
-          class="outline-item"
-          :class="{
-            'item-h1': h.level === 1,
-            'item-h2': h.level === 2,
-            'item-h3': h.level === 3,
-            active: h.id === activeId
-          }"
-          @click="$emit('navigate', h.id)"
-        >
-          <span class="item-dot" />
-          <span class="item-text">{{ h.text }}</span>
-        </button>
-      </nav>
-
-      <!-- Footer -->
-      <div v-if="headings.length" class="outline-footer">
-        <span class="outline-count">{{ headings.length }} 个标题</span>
-      </div>
+    <!-- Empty state -->
+    <div v-if="headings.length === 0" class="outline-empty">
+      <p class="outline-empty-text">暂无标题</p>
+      <p class="outline-empty-hint">使用 H1-H3 标题<br />构建文章结构</p>
     </div>
-  </div>
+
+    <!-- Heading list -->
+    <nav v-else class="outline-list">
+      <button
+        v-for="h in headings"
+        :key="h.id"
+        class="outline-item"
+        :class="{
+          'item-h1': h.level === 1,
+          'item-h2': h.level === 2,
+          'item-h3': h.level === 3,
+          active: h.id === activeId
+        }"
+        @click="$emit('navigate', h.id)"
+      >
+        <span class="item-dot" />
+        <span class="item-text">{{ h.text }}</span>
+      </button>
+    </nav>
+
+    <!-- Footer -->
+    <div v-if="headings.length" class="outline-footer">
+      <span class="outline-count">{{ headings.length }} 个标题</span>
+    </div>
+  </aside>
 </template>
 
 <script setup>
@@ -86,114 +70,48 @@ defineEmits(['toggle', 'navigate'])
 
 <style scoped>
 /* ========================================
-   Panel shell — width transition
+   Floating panel shell — slide + fade
    ======================================== */
-.outline-area {
-  flex-shrink: 0;
-  width: 44px;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  background-color: var(--color-background);
-  border-right: 1px solid transparent;
-  transition: width 280ms cubic-bezier(0.33, 0, 0.17, 1),
-              border-color 200ms ease;
-}
-
-.outline-area.expanded {
-  width: 180px;
-  border-right-color: var(--color-border-light);
-}
-
-/* ========================================
-   Collapsed: capsule
-   ======================================== */
-.outline-capsule-area {
-  display: flex;
-  justify-content: center;
-  padding-top: 56px;
-  width: 44px;
-}
-
-.outline-capsule {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 10px 8px;
-  width: 36px;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-  cursor: pointer;
-  color: var(--color-text-muted);
-  transition: all 200ms ease;
-  position: relative;
-}
-
-.outline-capsule:hover {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
-  color: var(--color-text-primary);
-  border-color: rgba(15, 23, 42, 0.12);
-  transform: translateY(-1px);
-}
-
-.capsule-icon {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.capsule-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.capsule-badge {
+.outline-float {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  min-width: 15px;
-  height: 15px;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: var(--color-primary);
-  color: #FFFFFF;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 15px;
-  text-align: center;
-  letter-spacing: 0;
+  top: 100px;
+  left: 8px;
+  width: 172px;
+  max-height: calc(100% - 140px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06),
+              0 1px 4px rgba(15, 23, 42, 0.04);
+  z-index: 10;
+  overflow: hidden;
+
+  /* Closed: slide off-screen to the left */
+  transform: translateX(calc(-100% - 20px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 260ms cubic-bezier(0.33, 0, 0.17, 1),
+              opacity 220ms ease;
+}
+
+.outline-float.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* ========================================
-   Expanded: full panel body
+   Header
    ======================================== */
-.outline-body {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 180px;
-  opacity: 0;
-  transition: opacity 160ms ease 100ms;
-}
-
-.outline-area.expanded .outline-body {
-  opacity: 1;
-}
-
-/* Header */
 .outline-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
   flex-shrink: 0;
 }
 
@@ -210,7 +128,7 @@ defineEmits(['toggle', 'navigate'])
   letter-spacing: 0.02em;
 }
 
-.outline-collapse-btn {
+.outline-close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,19 +142,21 @@ defineEmits(['toggle', 'navigate'])
   transition: all 150ms ease;
 }
 
-.outline-collapse-btn:hover {
+.outline-close-btn:hover {
   background: rgba(15, 23, 42, 0.04);
   color: var(--color-text-primary);
 }
 
-/* Empty state */
+/* ========================================
+   Empty state
+   ======================================== */
 .outline-empty {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  padding: 20px 16px;
   text-align: center;
 }
 
@@ -253,7 +173,9 @@ defineEmits(['toggle', 'navigate'])
   line-height: 1.6;
 }
 
-/* Heading list */
+/* ========================================
+   Heading list
+   ======================================== */
 .outline-list {
   flex: 1;
   overflow-y: auto;
@@ -304,7 +226,7 @@ defineEmits(['toggle', 'navigate'])
   font-weight: 400;
 }
 
-/* Level dot indicator */
+/* Level dot */
 .item-dot {
   flex-shrink: 0;
   width: 4px;
@@ -350,11 +272,13 @@ defineEmits(['toggle', 'navigate'])
   background: var(--color-primary);
 }
 
-/* Footer */
+/* ========================================
+   Footer
+   ======================================== */
 .outline-footer {
   flex-shrink: 0;
-  padding: 8px 12px;
-  border-top: 1px solid var(--color-border-light);
+  padding: 7px 12px;
+  border-top: 1px solid rgba(15, 23, 42, 0.05);
 }
 
 .outline-count {

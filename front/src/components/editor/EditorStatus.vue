@@ -1,6 +1,6 @@
 <template>
   <div class="editor-status">
-    <!-- Left: Focus mode toggle -->
+    <!-- Left: space + focus + outline -->
     <div class="editor-status-left">
       <button
         class="space-switch"
@@ -14,16 +14,27 @@
       </button>
 
       <button
-        class="focus-mode-btn"
+        class="status-btn"
         :class="{ active: isFocusMode }"
         :title="isFocusMode ? '退出专注模式 (Esc)' : '进入专注模式 (Cmd/Ctrl+Shift+F)'"
         @click="$emit('toggleFocusMode')"
       >
         <Maximize v-if="!isFocusMode" class="h-4 w-4" />
         <Minimize v-else class="h-4 w-4" />
-        <span class="focus-mode-text">
-          {{ isFocusMode ? '退出专注模式' : '专注模式' }}
+        <span class="status-btn-text">
+          {{ isFocusMode ? '退出专注' : '专注' }}
         </span>
+      </button>
+
+      <button
+        class="status-btn"
+        :class="{ active: isOutlineOpen }"
+        title="大纲"
+        @click="$emit('toggleOutline')"
+      >
+        <List class="h-4 w-4" />
+        <span class="status-btn-text">大纲</span>
+        <span v-if="outlineCount && !isOutlineOpen" class="status-btn-badge">{{ outlineCount }}</span>
       </button>
     </div>
 
@@ -48,7 +59,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Maximize, Minimize } from 'lucide-vue-next'
+import { Maximize, Minimize, List } from 'lucide-vue-next'
 
 const props = defineProps({
   status: {
@@ -70,10 +81,18 @@ const props = defineProps({
   currentSpace: {
     type: Object,
     default: null
+  },
+  isOutlineOpen: {
+    type: Boolean,
+    default: false
+  },
+  outlineCount: {
+    type: Number,
+    default: 0
   }
 })
 
-defineEmits(['toggleFocusMode', 'cycleSpace'])
+defineEmits(['toggleFocusMode', 'cycleSpace', 'toggleOutline'])
 
 function formatSaveTime(date) {
   const now = new Date()
@@ -109,7 +128,7 @@ const dotClass = computed(() => {
 .editor-status-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .editor-status-right {
@@ -125,7 +144,7 @@ const dotClass = computed(() => {
   color: var(--color-text-muted);
 }
 
-/* Focus mode button */
+/* Space switch */
 .space-switch {
   display: flex;
   align-items: center;
@@ -157,10 +176,11 @@ const dotClass = computed(() => {
   letter-spacing: 0.02em;
 }
 
-.focus-mode-btn {
+/* Status buttons (focus mode, outline) */
+.status-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 4px 10px;
   border-radius: 8px;
   background: none;
@@ -170,20 +190,37 @@ const dotClass = computed(() => {
   font-weight: 500;
   cursor: pointer;
   transition: all var(--duration-normal) var(--ease-smooth);
+  position: relative;
 }
 
-.focus-mode-btn:hover {
+.status-btn:hover {
   background-color: rgba(15, 23, 42, 0.04);
   color: var(--color-text-primary);
 }
 
-.focus-mode-btn.active {
+.status-btn.active {
   background-color: rgba(79, 124, 255, 0.08);
   color: var(--color-primary);
 }
 
-.focus-mode-text {
+.status-btn-text {
   letter-spacing: 0.01em;
+}
+
+.status-btn-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
 }
 
 /* Save status dots */
