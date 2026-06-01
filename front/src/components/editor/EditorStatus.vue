@@ -34,7 +34,6 @@
       >
         <List class="h-4 w-4" />
         <span class="status-btn-text">大纲</span>
-        <span v-if="outlineCount && !isOutlineOpen" class="status-btn-badge">{{ outlineCount }}</span>
       </button>
     </div>
 
@@ -85,10 +84,6 @@ const props = defineProps({
   isOutlineOpen: {
     type: Boolean,
     default: false
-  },
-  outlineCount: {
-    type: Number,
-    default: 0
   }
 })
 
@@ -205,22 +200,6 @@ const dotClass = computed(() => {
 
 .status-btn-text {
   letter-spacing: 0.01em;
-}
-
-.status-btn-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  min-width: 14px;
-  height: 14px;
-  padding: 0 4px;
-  border-radius: 7px;
-  background: var(--color-primary);
-  color: #FFFFFF;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 14px;
-  text-align: center;
 }
 
 /* Save status dots */

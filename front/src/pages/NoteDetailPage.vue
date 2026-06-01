@@ -22,7 +22,7 @@
         :active-id="outlineActiveId"
         :expanded="outlineExpanded"
         @toggle="outlineExpanded = !outlineExpanded"
-        @navigate="scrollToHeading"
+        @navigate="handleOutlineNavigate"
       />
 
       <!-- Editor Content Area -->
@@ -36,7 +36,6 @@
             :is-focus-mode="isFocusMode"
             :current-space="currentSpace"
             :is-outline-open="outlineExpanded"
-            :outline-count="outlineHeadings.length"
             @toggle-focus-mode="toggleFocusMode"
             @cycle-space="cycleSpace"
             @toggle-outline="outlineExpanded = !outlineExpanded"
@@ -207,6 +206,13 @@ const { activeId: outlineActiveId, scrollToHeading, setupObserver } = useOutline
 watch(outlineHeadings, () => {
   setupObserver()
 })
+
+function handleOutlineNavigate(id) {
+  const heading = outlineHeadings.value.find((h) => h.id === id)
+  if (heading) {
+    scrollToHeading(heading.text)
+  }
+}
 
 async function loadCategories() {
   try {
