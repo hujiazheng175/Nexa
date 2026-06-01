@@ -260,6 +260,7 @@ watch(() => props.modelValue, (newValue) => {
 
 defineExpose({
   editor,
+  getEditor: () => editor.value,
   getHTML: () => editor.value?.getHTML() || ''
 })
 </script>

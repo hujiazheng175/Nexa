@@ -1,8 +1,5 @@
 <template>
-  <!-- ============================================
-       Floating outline — absolutely positioned
-       Slides in/out from left, content unaffected
-       ============================================ -->
+  <!-- Dropdown outline — anchored below status bar, drops from top -->
   <aside class="outline-float" :class="{ open: expanded }">
     <!-- Header -->
     <div class="outline-header">
@@ -70,37 +67,50 @@ defineEmits(['toggle', 'navigate'])
 
 <style scoped>
 /* ========================================
-   Floating panel shell — slide + fade
+   Dropdown panel — below status bar, top origin
    ======================================== */
 .outline-float {
+  --outline-top: 48px;
+  --outline-left: 12px;
+
   position: absolute;
-  top: 100px;
-  left: 8px;
-  width: 172px;
-  max-height: calc(100% - 140px);
+  top: var(--outline-top);
+  left: var(--outline-left);
+  width: min(280px, calc(100% - 24px));
+  max-height: min(360px, calc(100vh - var(--outline-top) - 48px));
   display: flex;
   flex-direction: column;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06),
-              0 1px 4px rgba(15, 23, 42, 0.04);
-  z-index: 10;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.1),
+    0 4px 12px rgba(15, 23, 42, 0.06);
+  z-index: 20;
   overflow: hidden;
+  transform-origin: top left;
 
-  /* Closed: slide off-screen to the left */
-  transform: translateX(calc(-100% - 20px));
+  /* Closed: collapsed upward (hidden above anchor) */
+  transform: translateY(-10px) scale(0.97);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: transform 260ms cubic-bezier(0.33, 0, 0.17, 1),
-              opacity 220ms ease;
+  transition:
+    transform 280ms cubic-bezier(0.33, 1, 0.32, 1),
+    opacity 220ms ease,
+    visibility 0s linear 280ms;
 }
 
 .outline-float.open {
-  transform: translateX(0);
+  transform: translateY(0) scale(1);
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition:
+    transform 280ms cubic-bezier(0.33, 1, 0.32, 1),
+    opacity 220ms ease,
+    visibility 0s linear 0s;
 }
 
 /* ========================================
@@ -158,6 +168,7 @@ defineEmits(['toggle', 'navigate'])
   justify-content: center;
   padding: 20px 16px;
   text-align: center;
+  min-height: 120px;
 }
 
 .outline-empty-text {
@@ -180,6 +191,7 @@ defineEmits(['toggle', 'navigate'])
   flex: 1;
   overflow-y: auto;
   padding: 6px 0;
+  min-height: 0;
 }
 
 .outline-list::-webkit-scrollbar {
@@ -206,7 +218,6 @@ defineEmits(['toggle', 'navigate'])
   transition: all 150ms ease;
 }
 
-/* Level hierarchy */
 .item-h1 {
   padding-left: 12px;
   font-size: 13px;
@@ -226,7 +237,6 @@ defineEmits(['toggle', 'navigate'])
   font-weight: 400;
 }
 
-/* Level dot */
 .item-dot {
   flex-shrink: 0;
   width: 4px;
@@ -254,13 +264,11 @@ defineEmits(['toggle', 'navigate'])
   white-space: nowrap;
 }
 
-/* Hover */
 .outline-item:hover {
   background: rgba(15, 23, 42, 0.03);
   color: var(--color-text-primary);
 }
 
-/* Active */
 .outline-item.active {
   border-left-color: var(--color-primary);
   color: var(--color-primary);
@@ -272,9 +280,6 @@ defineEmits(['toggle', 'navigate'])
   background: var(--color-primary);
 }
 
-/* ========================================
-   Footer
-   ======================================== */
 .outline-footer {
   flex-shrink: 0;
   padding: 7px 12px;
@@ -285,5 +290,28 @@ defineEmits(['toggle', 'navigate'])
   font-size: 10px;
   color: var(--color-text-muted);
   opacity: 0.45;
+}
+
+/* Stagger list items when opening */
+.outline-float.open .outline-item {
+  animation: outline-item-in 320ms cubic-bezier(0.33, 1, 0.32, 1) backwards;
+}
+
+.outline-float.open .outline-item:nth-child(1) { animation-delay: 40ms; }
+.outline-float.open .outline-item:nth-child(2) { animation-delay: 55ms; }
+.outline-float.open .outline-item:nth-child(3) { animation-delay: 70ms; }
+.outline-float.open .outline-item:nth-child(4) { animation-delay: 85ms; }
+.outline-float.open .outline-item:nth-child(5) { animation-delay: 100ms; }
+.outline-float.open .outline-item:nth-child(n+6) { animation-delay: 115ms; }
+
+@keyframes outline-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

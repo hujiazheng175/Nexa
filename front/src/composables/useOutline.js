@@ -1,105 +1,150 @@
-import { ref, watch, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onBeforeUnmount, nextTick, unref } from 'vue'
+
+const HEADING_SELECTOR = 'h1, h2, h3'
+const OUTLINE_ID_PREFIX = 'outline-'
+const SCROLL_GAP_PX = 24
 
 /**
- * Extract headings from HTML content string.
- * Returns { id, level, text } for each h1/h2/h3.
- *
- * id format: "outline-N" where N matches the DOM index
- * of the heading within editor.view.dom.querySelectorAll('h1,h2,h3').
+ * Build outline items from a DOM root or HTML string.
+ * id = outline-{index} matches querySelectorAll order in the live editor.
  */
-export function extractHeadings(html) {
-  if (!html) return []
-  const div = document.createElement('div')
-  div.innerHTML = html
-  const headings = []
-  div.querySelectorAll('h1, h2, h3').forEach((el, i) => {
-    const text = el.textContent.trim()
-    if (text) {
-      headings.push({
-        id: `outline-${i}`,
-        level: parseInt(el.tagName[1]),
+export function extractHeadings(source) {
+  if (!source) return []
+
+  const root =
+    typeof source === 'string'
+      ? (() => {
+          const div = document.createElement('div')
+          div.innerHTML = source
+          return div
+        })()
+      : source
+
+  return [...root.querySelectorAll(HEADING_SELECTOR)]
+    .map((el, index) => {
+      const text = el.textContent.trim()
+      if (!text) return null
+      return {
+        id: `${OUTLINE_ID_PREFIX}${index}`,
+        level: Number(el.tagName.charAt(1)),
         text
-      })
-    }
-  })
-  return headings
+      }
+    })
+    .filter(Boolean)
+}
+
+function parseOutlineIndex(id) {
+  if (!id?.startsWith(OUTLINE_ID_PREFIX)) return -1
+  const index = Number(id.slice(OUTLINE_ID_PREFIX.length))
+  return Number.isInteger(index) && index >= 0 ? index : -1
 }
 
 /**
- * @param {import('vue').ComputedRef<import('@tiptap/vue-3').Editor|null>} editorRef
+ * @param {import('vue').MaybeRefOrGetter<import('@tiptap/core').Editor | null>} editorSource
  */
-export function useOutline(editorRef) {
+export function useOutline(editorSource) {
   const activeId = ref(null)
   let observer = null
 
+  const getEditor = () => {
+    const source = editorSource
+    if (typeof source === 'function') return source()
+    return unref(source)
+  }
+
+  const getHeadingElements = (editor) => {
+    if (!editor?.view?.dom) return []
+    return [...editor.view.dom.querySelectorAll(HEADING_SELECTOR)]
+  }
+
+  const getScrollContainer = (editor) => {
+    return editor?.view?.dom?.closest('.editor-shell') ?? null
+  }
+
   function setupObserver() {
-    if (observer) observer.disconnect()
+    observer?.disconnect()
+    observer = null
 
-    const editor = editorRef?.value
-    if (!editor) return
+    const editor = getEditor()
+    const headingEls = getHeadingElements(editor)
 
-    const headingEls = editor.view.dom.querySelectorAll('h1, h2, h3')
-    if (headingEls.length === 0) {
+    if (!headingEls.length) {
       activeId.value = null
       return
     }
 
-    const elToId = new Map()
-    headingEls.forEach((el, i) => elToId.set(el, `outline-${i}`))
+    const scrollRoot = getScrollContainer(editor)
+    const idByElement = new Map(
+      headingEls.map((el, index) => [el, `${OUTLINE_ID_PREFIX}${index}`])
+    )
 
     observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const id = elToId.get(entry.target)
-            if (id) activeId.value = id
-            return
-          }
-        }
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
+
+        const topEntry = visible[0]
+        if (!topEntry) return
+
+        const id = idByElement.get(topEntry.target)
+        if (id) activeId.value = id
       },
-      { rootMargin: '-10% 0px -75% 0px' }
+      {
+        root: scrollRoot,
+        rootMargin: '-12% 0px -65% 0px',
+        threshold: 0
+      }
     )
 
     headingEls.forEach((el) => observer.observe(el))
   }
 
-  /**
-   * Scroll to the heading identified by its outline id ("outline-N").
-   * Uses the N index to find the matching DOM element — no text
-   * matching required, so entity-encoding or whitespace differences
-   * between HTML-parsed text and live DOM text cannot cause a miss.
-   */
   function scrollToHeading(id) {
-    const editor = editorRef?.value
+    const editor = getEditor()
     if (!editor) return
 
-    const idx = parseInt(id.replace('outline-', ''))
-    if (isNaN(idx)) return
+    const index = parseOutlineIndex(id)
+    if (index < 0) return
 
-    const headingEls = editor.view.dom.querySelectorAll('h1, h2, h3')
-    const target = headingEls[idx]
-    if (!target) return
+    const target = getHeadingElements(editor)[index]
+    const scrollContainer = getScrollContainer(editor)
+    if (!target || !scrollContainer) return
 
-    // scrollIntoView handles finding the nearest scrollable ancestor
-    // (.editor-shell has overflow-y:auto) automatically.
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const containerTop = scrollContainer.getBoundingClientRect().top
+    const targetTop = target.getBoundingClientRect().top
+    const nextScrollTop =
+      scrollContainer.scrollTop + targetTop - containerTop - SCROLL_GAP_PX
+
+    scrollContainer.scrollTo({
+      top: Math.max(0, nextScrollTop),
+      behavior: 'smooth'
+    })
+
     activeId.value = id
   }
 
-  const stopInit = watch(
-    () => editorRef?.value,
-    (ed) => {
-      if (ed) {
-        nextTick(() => setupObserver())
-        stopInit?.()
+  watch(
+    () => getEditor(),
+    (editor) => {
+      if (editor) {
+        nextTick(setupObserver)
+      } else {
+        observer?.disconnect()
+        observer = null
+        activeId.value = null
       }
     },
-    { immediate: true }
+    { immediate: true, flush: 'post' }
   )
 
   onBeforeUnmount(() => {
-    if (observer) observer.disconnect()
+    observer?.disconnect()
   })
 
-  return { activeId, scrollToHeading, setupObserver }
+  return {
+    activeId,
+    scrollToHeading,
+    setupObserver
+  }
 }

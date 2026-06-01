@@ -158,7 +158,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import EditorSidebar from '@/components/layout/EditorSidebar.vue'
 import EditorShell from '@/components/editor/EditorShell.vue'
@@ -175,6 +175,7 @@ import { useAutoSave } from '@/composables/useAutoSave'
 import { useFocusMode } from '@/composables/useFocusMode'
 import { useWritingSpace } from '@/composables/useWritingSpace'
 import { extractHeadings, useOutline } from '@/composables/useOutline'
+import { useEditorRef } from '@/composables/useEditorRef'
 import { Sparkles, ChevronUp, Folder } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -193,20 +194,23 @@ const summaryGenerating = ref(false)
 
 const categories = ref([])
 
-// Outline
+// Outline — headings from live editor HTML so ids match TipTap DOM
 const outlineExpanded = ref(false)
+const editorInstance = useEditorRef(contentRef)
+
 const outlineHeadings = computed(() => {
-  // Access currentNote.content to establish reactive dependency;
-  // the v-model on EditorContent keeps it in sync with the editor.
-  return extractHeadings(currentNote.value?.content || '')
+  const html =
+    contentRef.value?.getHTML?.() ??
+    currentNote.value?.content ??
+    ''
+  return extractHeadings(html)
 })
 
-const tipTapEditor = computed(() => contentRef.value?.editor?.value ?? null)
-const { activeId: outlineActiveId, scrollToHeading, setupObserver } = useOutline(tipTapEditor)
+const { activeId: outlineActiveId, scrollToHeading, setupObserver } =
+  useOutline(editorInstance)
 
-// Re-attach observer when headings change (content edits)
 watch(outlineHeadings, () => {
-  setupObserver()
+  nextTick(setupObserver)
 })
 
 function handleOutlineNavigate(id) {
@@ -322,9 +326,7 @@ const formattedSummaryTime = computed(() => {
 })
 
 const focusContent = () => {
-  const exposed = contentRef.value?.editor
-  const editor = exposed?.value ?? exposed
-  editor?.commands?.focus()
+  editorInstance.value?.commands?.focus()
 }
 
 // Load current note
