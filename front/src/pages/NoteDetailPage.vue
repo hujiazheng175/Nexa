@@ -16,110 +16,122 @@
 
     <!-- Editor Area -->
     <main class="editor-main">
-      <template v-if="currentNote">
-        <!-- Status Bar -->
-        <EditorStatus
-          :status="saveStatus"
-          :status-label="saveStatusLabel"
-          :last-saved-at="saveLastSavedAt"
-          :is-focus-mode="isFocusMode"
-          :current-space="currentSpace"
-          @toggle-focus-mode="toggleFocusMode"
-          @cycle-space="cycleSpace"
-        />
+      <!-- Outline Panel (left whitespace) -->
+      <OutlinePanel
+        :headings="outlineHeadings"
+        :active-id="outlineActiveId"
+        :expanded="outlineExpanded"
+        @toggle="outlineExpanded = !outlineExpanded"
+        @navigate="scrollToHeading"
+      />
 
-        <!-- Editor Shell -->
-        <EditorShell :key="noteId">
-          <!-- Title -->
-          <EditorTitle
-            v-model="currentNote.title"
-            placeholder="无标题"
-            @enter="focusContent"
+      <!-- Editor Content Area -->
+      <div class="editor-main-content">
+        <template v-if="currentNote">
+          <!-- Status Bar -->
+          <EditorStatus
+            :status="saveStatus"
+            :status-label="saveStatusLabel"
+            :last-saved-at="saveLastSavedAt"
+            :is-focus-mode="isFocusMode"
+            :current-space="currentSpace"
+            @toggle-focus-mode="toggleFocusMode"
+            @cycle-space="cycleSpace"
           />
 
-          <!-- Category + Save time -->
-          <div class="editor-meta">
-            <div class="editor-category" v-if="categories.length">
-              <Folder class="h-3.5 w-3.5" />
-              <select
-                class="category-select"
-                :value="currentNote?.categoryId || ''"
-                @change="moveCategory($event.target.value)"
-              >
-                <option value="">未分类</option>
-                <option
-                  v-for="cat in categories"
-                  :key="cat.id"
-                  :value="cat.id"
-                >{{ cat.name }}</option>
-              </select>
-            </div>
-            <p v-if="saveLastSavedAt" class="editor-save-time">
-              {{ formattedSaveTime }}
-            </p>
-          </div>
+          <!-- Editor Shell -->
+          <EditorShell :key="noteId">
+            <!-- Title -->
+            <EditorTitle
+              v-model="currentNote.title"
+              placeholder="无标题"
+              @enter="focusContent"
+            />
 
-          <!-- Inline Summary: expanded -->
-          <div v-if="inlineSummary?.result && summaryExpanded" class="inline-summary">
-            <div class="inline-summary-header">
+            <!-- Category + Save time -->
+            <div class="editor-meta">
+              <div class="editor-category" v-if="categories.length">
+                <Folder class="h-3.5 w-3.5" />
+                <select
+                  class="category-select"
+                  :value="currentNote?.categoryId || ''"
+                  @change="moveCategory($event.target.value)"
+                >
+                  <option value="">未分类</option>
+                  <option
+                    v-for="cat in categories"
+                    :key="cat.id"
+                    :value="cat.id"
+                  >{{ cat.name }}</option>
+                </select>
+              </div>
+              <p v-if="saveLastSavedAt" class="editor-save-time">
+                {{ formattedSaveTime }}
+              </p>
+            </div>
+
+            <!-- Inline Summary: expanded -->
+            <div v-if="inlineSummary?.result && summaryExpanded" class="inline-summary">
+              <div class="inline-summary-header">
+                <Sparkles class="h-3.5 w-3.5" />
+                <span>AI 摘要</span>
+                <button class="inline-summary-close" @click="summaryExpanded = false" title="收起">
+                  <ChevronUp class="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <pre class="inline-summary-text">{{ inlineSummary.result }}</pre>
+              <div class="inline-summary-footer">
+                <span class="inline-summary-time">{{ formattedSummaryTime }}</span>
+                <button
+                  class="inline-summary-regenerate"
+                  :disabled="summaryGenerating"
+                  @click="generateInlineSummary"
+                >
+                  <Sparkles class="h-3 w-3" />
+                  重新生成
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Summary: collapsed -->
+            <button
+              v-else-if="inlineSummary?.result && !summaryExpanded"
+              class="inline-summary-reopen"
+              @click="summaryExpanded = true"
+            >
               <Sparkles class="h-3.5 w-3.5" />
               <span>AI 摘要</span>
-              <button class="inline-summary-close" @click="summaryExpanded = false" title="收起">
-                <ChevronUp class="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <pre class="inline-summary-text">{{ inlineSummary.result }}</pre>
-            <div class="inline-summary-footer">
-              <span class="inline-summary-time">{{ formattedSummaryTime }}</span>
-              <button
-                class="inline-summary-regenerate"
-                :disabled="summaryGenerating"
-                @click="generateInlineSummary"
-              >
-                <Sparkles class="h-3 w-3" />
-                重新生成
-              </button>
-            </div>
-          </div>
+              <span class="inline-summary-hint">已折叠</span>
+            </button>
 
-          <!-- Inline Summary: collapsed -->
-          <button
-            v-else-if="inlineSummary?.result && !summaryExpanded"
-            class="inline-summary-reopen"
-            @click="summaryExpanded = true"
-          >
-            <Sparkles class="h-3.5 w-3.5" />
-            <span>AI 摘要</span>
-            <span class="inline-summary-hint">已折叠</span>
-          </button>
+            <!-- Inline Summary: loading -->
+            <p v-else-if="summaryGenerating" class="inline-summary-loading">正在生成摘要...</p>
 
-          <!-- Inline Summary: loading -->
-          <p v-else-if="summaryGenerating" class="inline-summary-loading">正在生成摘要...</p>
+            <!-- Inline Summary: none yet -->
+            <button
+              v-else
+              class="inline-summary-generate"
+              @click="generateInlineSummary"
+            >
+              <Sparkles class="h-3.5 w-3.5" />
+              <span>AI 摘要</span>
+            </button>
 
-          <!-- Inline Summary: none yet -->
-          <button
-            v-else
-            class="inline-summary-generate"
-            @click="generateInlineSummary"
-          >
-            <Sparkles class="h-3.5 w-3.5" />
-            <span>AI 摘要</span>
-          </button>
+            <!-- Divider -->
+            <div class="editor-divider" />
 
-          <!-- Divider -->
-          <div class="editor-divider" />
+            <!-- Content -->
+            <EditorContent
+              ref="contentRef"
+              v-model="currentNote.content"
+              placeholder="开始书写..."
+            />
+          </EditorShell>
+        </template>
 
-          <!-- Content -->
-          <EditorContent
-            ref="contentRef"
-            v-model="currentNote.content"
-            placeholder="开始书写..."
-          />
-        </EditorShell>
-      </template>
-
-      <div v-else class="loading-placeholder">
-        <p class="text-muted">正在加载...</p>
+        <div v-else class="loading-placeholder">
+          <p class="text-muted">正在加载...</p>
+        </div>
       </div>
     </main>
 
@@ -151,6 +163,7 @@ import EditorShell from '@/components/editor/EditorShell.vue'
 import EditorTitle from '@/components/editor/EditorTitle.vue'
 import EditorContent from '@/components/editor/EditorContent.vue'
 import EditorStatus from '@/components/editor/EditorStatus.vue'
+import OutlinePanel from '@/components/editor/OutlinePanel.vue'
 import AssistantPanel from '@/components/common/AssistantPanel.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import { noteApi } from '@/api/note'
@@ -159,6 +172,7 @@ import { categoryApi } from '@/api/category'
 import { useAutoSave } from '@/composables/useAutoSave'
 import { useFocusMode } from '@/composables/useFocusMode'
 import { useWritingSpace } from '@/composables/useWritingSpace'
+import { extractHeadings, useOutline } from '@/composables/useOutline'
 import { Sparkles, ChevronUp, Folder } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -176,6 +190,20 @@ const summaryExpanded = ref(false)
 const summaryGenerating = ref(false)
 
 const categories = ref([])
+
+// Outline
+const outlineExpanded = ref(false)
+const outlineHeadings = computed(() => {
+  return extractHeadings(currentNote.value?.content || '')
+})
+
+const tipTapEditor = computed(() => contentRef.value?.editor?.value || null)
+const { activeId: outlineActiveId, scrollToHeading, setupObserver } = useOutline(tipTapEditor)
+
+// Re-attach observer when headings change (content edits)
+watch(outlineHeadings, () => {
+  setupObserver()
+})
 
 async function loadCategories() {
   try {
@@ -441,9 +469,16 @@ const handleDeleteNote = (id) => {
 .editor-main {
   flex: 1;
   display: flex;
-  flex-direction: column;
   overflow: hidden;
   background-color: var(--color-background);
+}
+
+.editor-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .loading-placeholder {
