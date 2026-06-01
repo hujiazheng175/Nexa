@@ -16,15 +16,6 @@
 
     <!-- Editor Area -->
     <main class="editor-main">
-      <!-- Floating Outline (absolute, slides in from left) -->
-      <OutlinePanel
-        :headings="outlineHeadings"
-        :active-id="outlineActiveId"
-        :expanded="outlineExpanded"
-        @toggle="outlineExpanded = !outlineExpanded"
-        @navigate="handleOutlineNavigate"
-      />
-
       <!-- Editor Content Area -->
       <div class="editor-main-content">
         <template v-if="currentNote">
@@ -39,6 +30,15 @@
             @toggle-focus-mode="toggleFocusMode"
             @cycle-space="cycleSpace"
             @toggle-outline="outlineExpanded = !outlineExpanded"
+          />
+
+          <!-- Outline dropdown — drops from below status bar -->
+          <OutlinePanel
+            :headings="outlineHeadings"
+            :active-id="outlineActiveId"
+            :expanded="outlineExpanded"
+            @toggle="outlineExpanded = !outlineExpanded"
+            @navigate="handleOutlineNavigate"
           />
 
           <!-- Editor Shell -->
@@ -196,10 +196,12 @@ const categories = ref([])
 // Outline
 const outlineExpanded = ref(false)
 const outlineHeadings = computed(() => {
+  // Access currentNote.content to establish reactive dependency;
+  // the v-model on EditorContent keeps it in sync with the editor.
   return extractHeadings(currentNote.value?.content || '')
 })
 
-const tipTapEditor = computed(() => contentRef.value?.editor?.value || null)
+const tipTapEditor = computed(() => contentRef.value?.editor?.value ?? null)
 const { activeId: outlineActiveId, scrollToHeading, setupObserver } = useOutline(tipTapEditor)
 
 // Re-attach observer when headings change (content edits)
@@ -320,7 +322,9 @@ const formattedSummaryTime = computed(() => {
 })
 
 const focusContent = () => {
-  contentRef.value?.editor?.value?.commands.focus()
+  const exposed = contentRef.value?.editor
+  const editor = exposed?.value ?? exposed
+  editor?.commands?.focus()
 }
 
 // Load current note
@@ -485,6 +489,7 @@ const handleDeleteNote = (id) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .loading-placeholder {

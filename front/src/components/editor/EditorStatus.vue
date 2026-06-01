@@ -185,7 +185,6 @@ const dotClass = computed(() => {
   font-weight: 500;
   cursor: pointer;
   transition: all var(--duration-normal) var(--ease-smooth);
-  position: relative;
 }
 
 .status-btn:hover {
