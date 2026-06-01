@@ -1,40 +1,39 @@
 <template>
-  <div class="outline-panel" :class="{ expanded: expanded }">
-    <!-- Collapsed: thin bar with dots -->
-    <button
-      v-if="!expanded"
-      class="outline-trigger"
-      @click="$emit('toggle')"
-      title="展开大纲"
-    >
-      <div class="outline-dots">
-        <span
-          v-for="h in headings"
-          :key="h.id"
-          class="outline-dot"
-          :class="{
-            'dot-h1': h.level === 1,
-            'dot-h2': h.level === 2,
-            'dot-h3': h.level === 3
-          }"
-        />
-      </div>
-    </button>
+  <div class="outline-area" :class="{ expanded }">
+    <!-- ============================================
+         Collapsed: floating capsule button
+         ============================================ -->
+    <div v-if="!expanded" class="outline-capsule-area">
+      <button
+        class="outline-capsule"
+        @click="$emit('toggle')"
+        title="展开大纲"
+      >
+        <List class="capsule-icon" />
+        <span class="capsule-label">大纲</span>
+        <span v-if="headings.length" class="capsule-badge">{{ headings.length }}</span>
+      </button>
+    </div>
 
-    <!-- Expanded: full panel -->
+    <!-- ============================================
+         Expanded: full outline panel
+         ============================================ -->
     <div v-else class="outline-body">
       <!-- Header -->
       <div class="outline-header">
-        <span class="outline-title">大纲</span>
+        <div class="outline-header-left">
+          <List class="h-3.5 w-3.5" />
+          <span class="outline-title">大纲</span>
+        </div>
         <button class="outline-collapse-btn" @click="$emit('toggle')" title="收起大纲">
-          <ChevronLeft class="h-3.5 w-3.5" />
+          <X class="h-3.5 w-3.5" />
         </button>
       </div>
 
       <!-- Empty state -->
       <div v-if="headings.length === 0" class="outline-empty">
         <p class="outline-empty-text">暂无标题</p>
-        <p class="outline-empty-hint">使用 H1-H3 标题构建文章结构</p>
+        <p class="outline-empty-hint">使用 H1-H3 标题<br />构建文章结构</p>
       </div>
 
       <!-- Heading list -->
@@ -51,12 +50,13 @@
           }"
           @click="$emit('navigate', h.id)"
         >
-          {{ h.text }}
+          <span class="item-dot" />
+          <span class="item-text">{{ h.text }}</span>
         </button>
       </nav>
 
-      <!-- Footer: heading count -->
-      <div class="outline-footer">
+      <!-- Footer -->
+      <div v-if="headings.length" class="outline-footer">
         <span class="outline-count">{{ headings.length }} 个标题</span>
       </div>
     </div>
@@ -64,7 +64,7 @@
 </template>
 
 <script setup>
-import { ChevronLeft } from 'lucide-vue-next'
+import { List, X } from 'lucide-vue-next'
 
 defineProps({
   headings: {
@@ -88,72 +88,87 @@ defineEmits(['toggle', 'navigate'])
 /* ========================================
    Panel shell — width transition
    ======================================== */
-.outline-panel {
+.outline-area {
   flex-shrink: 0;
-  width: 6px;
+  width: 44px;
   height: 100%;
+  position: relative;
   overflow: hidden;
+  background-color: var(--color-background);
   border-right: 1px solid transparent;
   transition: width 280ms cubic-bezier(0.33, 0, 0.17, 1),
-              border-color 280ms cubic-bezier(0.33, 0, 0.17, 1);
-  background-color: var(--color-background);
+              border-color 200ms ease;
 }
 
-.outline-panel.expanded {
+.outline-area.expanded {
   width: 180px;
   border-right-color: var(--color-border-light);
 }
 
 /* ========================================
-   Collapsed: thin bar trigger
+   Collapsed: capsule
    ======================================== */
-.outline-trigger {
+.outline-capsule-area {
+  display: flex;
+  justify-content: center;
+  padding-top: 56px;
+  width: 44px;
+}
+
+.outline-capsule {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  height: 100%;
-  padding: 12px 0;
-  border: none;
-  background: none;
+  gap: 3px;
+  padding: 10px 8px;
+  width: 36px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   cursor: pointer;
-  opacity: 0.3;
-  transition: opacity 200ms ease;
+  color: var(--color-text-muted);
+  transition: all 200ms ease;
+  position: relative;
 }
 
-.outline-trigger:hover {
-  opacity: 0.7;
+.outline-capsule:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+  color: var(--color-text-primary);
+  border-color: rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
 }
 
-.outline-dots {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding-top: 40px;
-}
-
-.outline-dot {
-  display: block;
-  border-radius: 50%;
-  background-color: var(--color-text-muted);
+.capsule-icon {
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
 }
 
-.dot-h1 {
-  width: 4px;
-  height: 4px;
+.capsule-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
 
-.dot-h2 {
-  width: 3px;
-  height: 3px;
-}
-
-.dot-h3 {
-  width: 2.5px;
-  height: 2.5px;
-  opacity: 0.6;
+.capsule-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+  letter-spacing: 0;
 }
 
 /* ========================================
@@ -165,10 +180,10 @@ defineEmits(['toggle', 'navigate'])
   height: 100%;
   width: 180px;
   opacity: 0;
-  transition: opacity 180ms ease 100ms; /* fade in after width expands */
+  transition: opacity 160ms ease 100ms;
 }
 
-.outline-panel.expanded .outline-body {
+.outline-area.expanded .outline-body {
   opacity: 1;
 }
 
@@ -177,15 +192,21 @@ defineEmits(['toggle', 'navigate'])
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 12px;
+  padding: 11px 12px;
   border-bottom: 1px solid var(--color-border-light);
   flex-shrink: 0;
+}
+
+.outline-header-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-text-secondary);
 }
 
 .outline-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-secondary);
   letter-spacing: 0.02em;
 }
 
@@ -193,9 +214,9 @@ defineEmits(['toggle', 'navigate'])
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   border: none;
   background: none;
   color: var(--color-text-muted);
@@ -229,14 +250,14 @@ defineEmits(['toggle', 'navigate'])
   font-size: 11px;
   color: var(--color-text-muted);
   opacity: 0.5;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* Heading list */
 .outline-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
 .outline-list::-webkit-scrollbar {
@@ -244,27 +265,26 @@ defineEmits(['toggle', 'navigate'])
 }
 
 .outline-list::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.06);
   border-radius: 3px;
 }
 
 .outline-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: 100%;
-  padding: 5px 12px;
+  padding: 6px 12px;
   border: none;
   border-left: 2px solid transparent;
   background: none;
   text-align: left;
   cursor: pointer;
   color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   transition: all 150ms ease;
 }
 
-/* Level indentation */
+/* Level hierarchy */
 .item-h1 {
   padding-left: 12px;
   font-size: 13px;
@@ -273,15 +293,43 @@ defineEmits(['toggle', 'navigate'])
 }
 
 .item-h2 {
-  padding-left: 22px;
+  padding-left: 24px;
   font-size: 12px;
   font-weight: 400;
 }
 
 .item-h3 {
-  padding-left: 32px;
+  padding-left: 36px;
   font-size: 11px;
   font-weight: 400;
+}
+
+/* Level dot indicator */
+.item-dot {
+  flex-shrink: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.item-h1 .item-dot {
+  width: 5px;
+  height: 5px;
+  opacity: 0.5;
+}
+
+.item-h3 .item-dot {
+  width: 3px;
+  height: 3px;
+  opacity: 0.25;
+}
+
+.item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Hover */
@@ -290,11 +338,16 @@ defineEmits(['toggle', 'navigate'])
   color: var(--color-text-primary);
 }
 
-/* Active (current heading) */
+/* Active */
 .outline-item.active {
   border-left-color: var(--color-primary);
-  color: var(--color-text-primary);
-  background: rgba(79, 124, 255, 0.06);
+  color: var(--color-primary);
+  background: rgba(79, 124, 255, 0.05);
+}
+
+.outline-item.active .item-dot {
+  opacity: 1;
+  background: var(--color-primary);
 }
 
 /* Footer */
@@ -305,8 +358,8 @@ defineEmits(['toggle', 'navigate'])
 }
 
 .outline-count {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-text-muted);
-  opacity: 0.5;
+  opacity: 0.45;
 }
 </style>
