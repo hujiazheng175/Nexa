@@ -3,6 +3,9 @@ import { ref, watch, onBeforeUnmount, nextTick } from 'vue'
 /**
  * Extract headings from HTML content string.
  * Returns { id, level, text } for each h1/h2/h3.
+ *
+ * id format: "outline-N" where N matches the DOM index
+ * of the heading within editor.view.dom.querySelectorAll('h1,h2,h3').
  */
 export function extractHeadings(html) {
   if (!html) return []
@@ -23,35 +26,26 @@ export function extractHeadings(html) {
 }
 
 /**
- * Composable: document outline — active-heading tracking + scroll navigation.
- *
  * @param {import('vue').ComputedRef<import('@tiptap/vue-3').Editor|null>} editorRef
- *        A computed that resolves to the TipTap Editor instance (or null).
  */
 export function useOutline(editorRef) {
   const activeId = ref(null)
   let observer = null
 
-  /** Attach IntersectionObserver to heading DOM elements in the editor */
   function setupObserver() {
     if (observer) observer.disconnect()
 
     const editor = editorRef?.value
     if (!editor) return
 
-    const dom = editor.view.dom
-    const headingEls = dom.querySelectorAll('h1, h2, h3')
-
+    const headingEls = editor.view.dom.querySelectorAll('h1, h2, h3')
     if (headingEls.length === 0) {
       activeId.value = null
       return
     }
 
-    // Map DOM elements → outline id by their index
     const elToId = new Map()
-    headingEls.forEach((el, i) => {
-      elToId.set(el, `outline-${i}`)
-    })
+    headingEls.forEach((el, i) => elToId.set(el, `outline-${i}`))
 
     observer = new IntersectionObserver(
       (entries) => {
@@ -70,45 +64,28 @@ export function useOutline(editorRef) {
   }
 
   /**
-   * Scroll the editor so the heading with the given text is at the top.
-   * Finds the heading by text content in the editor DOM, then manually
-   * scrolls the nearest scrollable ancestor (.editor-shell).
+   * Scroll to the heading identified by its outline id ("outline-N").
+   * Uses the N index to find the matching DOM element — no text
+   * matching required, so entity-encoding or whitespace differences
+   * between HTML-parsed text and live DOM text cannot cause a miss.
    */
-  function scrollToHeading(headingText) {
+  function scrollToHeading(id) {
     const editor = editorRef?.value
-    if (!editor || !headingText) return
+    if (!editor) return
 
-    const dom = editor.view.dom
-    const headingEls = dom.querySelectorAll('h1, h2, h3')
+    const idx = parseInt(id.replace('outline-', ''))
+    if (isNaN(idx)) return
 
-    // Find the heading element by matching text content
-    let target = null
-    let targetIdx = -1
-    for (let i = 0; i < headingEls.length; i++) {
-      if (headingEls[i].textContent.trim() === headingText) {
-        target = headingEls[i]
-        targetIdx = i
-        break
-      }
-    }
-
+    const headingEls = editor.view.dom.querySelectorAll('h1, h2, h3')
+    const target = headingEls[idx]
     if (!target) return
 
-    // Scroll the editor shell (the scrollable container)
-    const shell = target.closest('.editor-shell')
-    if (shell) {
-      const shellRect = shell.getBoundingClientRect()
-      const targetRect = target.getBoundingClientRect()
-      const offset = targetRect.top - shellRect.top + shell.scrollTop - 60
-      shell.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' })
-    } else {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-
-    activeId.value = `outline-${targetIdx}`
+    // scrollIntoView handles finding the nearest scrollable ancestor
+    // (.editor-shell has overflow-y:auto) automatically.
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    activeId.value = id
   }
 
-  // Initial setup when editor first becomes available
   const stopInit = watch(
     () => editorRef?.value,
     (ed) => {

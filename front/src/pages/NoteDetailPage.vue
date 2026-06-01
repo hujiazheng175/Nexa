@@ -208,10 +208,7 @@ watch(outlineHeadings, () => {
 })
 
 function handleOutlineNavigate(id) {
-  const heading = outlineHeadings.value.find((h) => h.id === id)
-  if (heading) {
-    scrollToHeading(heading.text)
-  }
+  scrollToHeading(id)
 }
 
 async function loadCategories() {
